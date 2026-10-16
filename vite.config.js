@@ -51,20 +51,31 @@ export default defineConfig({
         // Los datos (Supabase REST y Realtime) no pasan por la caché: la instantánea vive en localStorage
         runtimeCaching: [
           {
-            // Mosaicos del mapa ya vistos: sin conexión se ve lo que se miró antes. Van con CORS (no opacos).
-            // CacheFirst también respeta la política de OSM (guardarlos al menos 7 días en vez de pedirlos otra vez).
-            urlPattern: ({ url }) => url.hostname === 'tile.openstreetmap.org',
+            // Estilo e índice de mosaicos de OpenFreeMap: de la red si hay (cambian cada semana y las versiones
+            // viejas desaparecen); sin conexión, la última copia
+            urlPattern: ({ url }) =>
+              url.hostname === 'tiles.openfreemap.org' && (url.pathname.startsWith('/styles/') || url.pathname === '/planet'),
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'map-style',
+              networkTimeoutSeconds: 4,
+              expiration: { maxEntries: 10 },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
+            // Mosaicos, fuentes y sprites (llevan versión en la URL): los ya vistos sirven sin conexión
+            urlPattern: ({ url }) => url.hostname === 'tiles.openfreemap.org',
             handler: 'CacheFirst',
             options: {
               cacheName: 'map-tiles',
-              expiration: { maxEntries: 800, maxAgeSeconds: 60 * 60 * 24 * 30, purgeOnQuotaError: true },
+              expiration: { maxEntries: 1000, maxAgeSeconds: 60 * 60 * 24 * 30, purgeOnQuotaError: true },
               cacheableResponse: { statuses: [200] },
             },
           },
           {
             // Portadas (Supabase Storage o URL pegada): se guardan las que ya se han visto
-            urlPattern: ({ request, sameOrigin, url }) =>
-              request.destination === 'image' && !sameOrigin && url.hostname !== 'tile.openstreetmap.org',
+            urlPattern: ({ request, sameOrigin }) => request.destination === 'image' && !sameOrigin,
             handler: 'CacheFirst',
             options: {
               cacheName: 'covers',
@@ -76,6 +87,10 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    // MapLibre (el chunk del mapa) ocupa ~1 MB sin comprimir (~285 KB comprimido); solo se descarga al abrir el mapa
+    chunkSizeWarningLimit: 1100,
+  },
   server: {
     // Accesible desde el móvil en la misma wifi con `npm run dev -- --host`
     port: 5173,

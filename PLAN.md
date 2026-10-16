@@ -225,7 +225,13 @@ Decisiones: **subir foto o pegar URL**, **banda 16:9 en la parte superior de la 
   - `lib/geo.js` las lee del propio enlace (`!3d…!4d…`, `@lat,lng`, `?q=lat,lng`).
   - Los enlaces cortos de «Compartir» (`maps.app.goo.gl`) y los que solo traen un nombre (`?q=Kinkaku-ji`) los resuelve `api/geocode.js`. Sigue la redirección, solo hacia dominios de Google, y si no hay coordenadas busca el nombre en Nominatim (OSM) dentro de Japón. La CDN de Vercel guarda la respuesta un año.
   - Cada dispositivo guarda lo resuelto en `localStorage` (`jtp.geo`). Un enlace que no se pudo situar se reintenta a la semana.
-- **Mapa:** Leaflet 1.9 cargado aparte (~45 KB comprimidos, solo al abrir el mapa) con los mosaicos estándar de OpenStreetMap; en el tema oscuro se invierten con un filtro CSS. CARTO se descartó: ya pide clave. Los mosaicos vistos se guardan en la caché `map-tiles` del service worker (800 como máximo, 30 días), así que sin conexión se ve lo ya mirado.
+- **Mapa:** MapLibre GL 6.11 (vectorial) con OpenFreeMap, estilo **Liberty** (el más parecido a Google; elegido tras comparar con Google Maps y otros estilos), sin clave ni cuenta. Los nombres salen en español o inglés si existen y, si no, transcritos al alfabeto latino, en lugar de en japonés. Se usa el mismo estilo en los dos temas.
+  - Probados antes y descartados: Leaflet con mosaicos de OSM (feo) y CARTO (ya pide clave). Google Maps exigía una cuenta con tarjeta y no deja guardar el mapa para verlo sin conexión.
+  - MapLibre ≤ 6.4.0 tiene una vulnerabilidad XSS (GHSA-jrc7-96c5-q579): no bajar de 6.4.1.
+  - La v6 calcula en tiempo de ejecución la ruta de su worker; Vite lo empaqueta con `?worker&url` y se pasa con `setWorkerUrl`.
+  - Pesa: ~285 KB comprimidos más el worker, solo al abrir el mapa, pero va en el precache para que funcione sin conexión. La primera instalación de la PWA descarga ~2,2 MB sin comprimir.
+  - Caché del service worker: el estilo y el índice de mosaicos, de la red primero (`map-style`: OpenFreeMap cambia de versión cada semana y retira las viejas); los mosaicos, fuentes y sprites, de la caché (`map-tiles`, 1000 como máximo, 30 días).
+  - Sin WebGL se muestra un aviso en lugar del mapa.
 - **Desarrollo:** `vite.config.js` monta `/api/geocode` en `npm run dev`, así que funciona igual que en Vercel.
 - **Probado** con Chrome headless: enlace largo, enlace corto real (`goo.gl/maps`), enlace con solo el nombre, coordenadas en `?query=`, enlace roto y dirección escrita; filtro por ciudad, tema claro y oscuro, chincheta → detalle, y tecla `m`. **Pendiente:** probar en el móvil un `maps.app.goo.gl` recién compartido desde la app de Google Maps.
 

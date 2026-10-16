@@ -1,4 +1,4 @@
-/* Leaflet usa z-index de 400 a 1000: `isolation` los encierra para que no tapen la cabecera ni las hojas */
+/* MapLibre posiciona marcadores y controles con z-index: `isolation` los encierra para que no tapen la cabecera ni las hojas */
 .map {
   position: relative;
   isolation: isolate;
@@ -7,27 +7,26 @@
   border-radius: var(--radius-l);
   border: 1px solid var(--line);
   overflow: hidden;
+  background: #f8f4f0; /* el fondo del estilo Liberty: sin destello oscuro mientras carga */
 }
 
-.map:global(.leaflet-container) {
+.failed {
+  display: grid;
+  place-items: center;
+  padding: 24px;
   background: var(--bg-raised);
-  font-family: inherit;
-  font-size: 0.8125rem;
-}
-
-/* Tema oscuro: el mapa claro de OSM invertido y apagado, a juego con la tinta sumi (solo la capa de mosaicos) */
-.map[data-tone='dark'] :global(.leaflet-tile-pane) {
-  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.55);
-}
-
-.map[data-tone='light'] :global(.leaflet-tile-pane) {
-  filter: saturate(0.8) sepia(0.08);
+  color: var(--text-dim);
+  text-align: center;
 }
 
 /* ───── Chinchetas ───── */
 .pin {
-  background: none;
+  width: 34px;
+  height: 42px;
+  padding: 0;
   border: 0;
+  background: none;
+  cursor: pointer;
 }
 
 .pinHead {
@@ -37,8 +36,6 @@
   height: 34px;
   border-radius: 50% 50% 50% 4px;
   transform: rotate(-45deg);
-  transform-origin: center;
-  margin-top: 0;
   background: var(--bg-raised);
   border: 2px solid var(--pin);
   color: var(--pin);
@@ -63,63 +60,49 @@
   transform: rotate(-45deg) scale(1.12);
 }
 
-.pinHead[data-selected] {
-  transform: rotate(-45deg) scale(1.22);
-  outline: 3px solid color-mix(in srgb, var(--pin) 35%, transparent);
+.pin:focus-visible {
+  outline: none;
+}
+
+.pin:focus-visible .pinHead,
+.pin[data-selected] .pinHead {
+  outline: 3px solid color-mix(in srgb, var(--pin) 40%, transparent);
   outline-offset: 2px;
 }
 
-/* ───── Etiqueta al pasar el ratón ───── */
-.tooltip:global(.leaflet-tooltip) {
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--line-strong);
-  background: var(--bg-raised);
-  color: var(--text);
-  box-shadow: var(--shadow-pop);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  white-space: nowrap;
+.pin[data-selected] .pinHead {
+  transform: rotate(-45deg) scale(1.22);
 }
 
-.tooltip:global(.leaflet-tooltip-top)::before {
-  border-top-color: var(--line-strong);
-}
-
-/* ───── Controles (zoom y créditos) ───── */
-.map :global(.leaflet-bar) {
+/* ───── Controles (zoom y créditos), con los colores de la app ───── */
+.map :global(.maplibregl-ctrl-group) {
   border: 1px solid var(--line-strong);
   border-radius: 10px;
   overflow: hidden;
+  background: var(--surface);
   box-shadow: var(--shadow);
 }
 
-.map :global(.leaflet-bar a) {
+.map :global(.maplibregl-ctrl-group button) {
   width: 34px;
   height: 34px;
-  line-height: 32px;
-  background: var(--surface);
-  color: var(--text);
-  border-bottom-color: var(--line);
 }
 
-.map :global(.leaflet-bar a:hover) {
+.map :global(.maplibregl-ctrl-group button + button) {
+  border-top: 1px solid var(--line);
+}
+
+.map :global(.maplibregl-ctrl-group button:not(:disabled):hover) {
   background: var(--surface-hover);
 }
 
-.map :global(.leaflet-bar a.leaflet-disabled) {
-  background: var(--surface);
-  color: var(--text-faint);
+/* Los iconos de MapLibre son negros: en el tema oscuro se aclaran */
+:global([data-theme='dark']) .map :global(.maplibregl-ctrl-icon) {
+  filter: invert(0.9);
 }
 
-.map :global(.leaflet-control-attribution) {
-  background: color-mix(in srgb, var(--bg-raised) 80%, transparent);
-  color: var(--text-faint);
+.map :global(.maplibregl-ctrl-attrib) {
   font-size: 0.6875rem;
-}
-
-.map :global(.leaflet-control-attribution a) {
-  color: var(--text-dim);
 }
 
 @media (prefers-reduced-motion: reduce) {
