@@ -6,14 +6,17 @@ import Icon from '../ui/Icon.jsx'
 import Segmented from '../ui/Segmented.jsx'
 import styles from './PlanDetail.module.css'
 import PlanCover from './PlanCover.jsx'
+import PlanHistory from './PlanHistory.jsx'
 
-export default function PlanDetail({ plan, rate, onEdit, onArchive, onRestore, onStatus }) {
+export default function PlanDetail({ plan, rate, me, onEdit, onArchive, onRestore, onStatus, onToggleAttend, onToggleVote }) {
   const city = CITY_BY_ID[plan.city]
   const category = CATEGORY_BY_ID[plan.category]
   const price = formatPrice(plan, rate)
   const duration = formatDuration(plan.duration_min)
   const maps = mapsUrl(plan.location)
   const archived = Boolean(plan.archived_at)
+  const going = plan.attendees.includes(me)
+  const voted = plan.votes.includes(me)
 
   return (
     <article className={styles.detail} style={{ '--city-color': cityColor(plan.city) }}>
@@ -34,6 +37,20 @@ export default function PlanDetail({ plan, rate, onEdit, onArchive, onRestore, o
         </p>
         <h2 className={styles.title}>{plan.title}</h2>
       </header>
+
+      {!archived && (
+        <div className={styles.quick}>
+          <button type="button" className={styles.attend} aria-pressed={going} onClick={onToggleAttend}>
+            <Icon name={going ? 'check' : 'plus'} size={18} />
+            {going ? 'Voy' : 'Me apunto'}
+          </button>
+          <button type="button" className={styles.vote} aria-pressed={voted} onClick={onToggleVote}>
+            <Icon name="heart" size={18} filled={voted} />
+            Me interesa
+            {plan.votes.length > 0 && <span className={styles.voteCount}>{plan.votes.length}</span>}
+          </button>
+        </div>
+      )}
 
       <Segmented
         label="Estado"
@@ -103,6 +120,11 @@ export default function PlanDetail({ plan, rate, onEdit, onArchive, onRestore, o
         ) : (
           <p className={styles.dim}>Todavía nadie.</p>
         )}
+        {plan.votes.length > 0 && (
+          <p className={styles.dim}>
+            <Icon name="heart" size={14} filled className={styles.inlineHeart} /> Les interesa mucho: {plan.votes.join(', ')}
+          </p>
+        )}
       </section>
 
       {plan.notes && (
@@ -125,6 +147,11 @@ export default function PlanDetail({ plan, rate, onEdit, onArchive, onRestore, o
           <Button variant="ghost" icon="archive" onClick={onArchive}>Archivar</Button>
         </div>
       )}
+
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Historial</h3>
+        <PlanHistory planId={plan.id} version={plan.updated_at} />
+      </section>
     </article>
   )
 }

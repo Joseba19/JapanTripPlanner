@@ -16,11 +16,13 @@ import { useIdentity } from '../hooks/useIdentity.jsx'
 import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery.js'
 import { useOverlay } from '../hooks/useOverlay.js'
 import { EMPTY_FILTERS, filterPlans, sortPlans } from '../lib/search.js'
+import { positionForMove } from '../lib/ordering.js'
 import { usePlans } from '../state/PlansProvider.jsx'
 import styles from './PlansPage.module.css'
 
 export default function PlansPage() {
-  const { status, error, plans, active, rate, reload, create, update, setStatus, archive, restore } = usePlans()
+  const { status, error, plans, active, rate, reload, create, update, setStatus, archive, restore, toggleAttendee, toggleVote, move } =
+    usePlans()
   const { me } = useIdentity()
   const toast = useToast()
   const { filters, setFilters, clearFilters, sort, setSort, activeCount } = useFilters()
@@ -90,7 +92,10 @@ export default function PlansPage() {
       <PlanDetail
         plan={openPlan}
         rate={rate}
+        me={me}
         onEdit={() => overlay.openEdit(openPlan.id)}
+        onToggleAttend={() => toggleAttendee(openPlan.id)}
+        onToggleVote={() => toggleVote(openPlan.id)}
         onStatus={(value) => setStatus(openPlan.id, value)}
         onRestore={() => restore(openPlan.id)}
         onArchive={async () => {
@@ -182,11 +187,18 @@ export default function PlansPage() {
             )}
             <PlanList
               plans={visible}
-              rate={rate}
               loading={status === 'loading'}
               selectedId={isDesktop ? openId : null}
-              onOpen={overlay.openPlan}
               empty={emptyList}
+              cardProps={{ me, rate, onOpen: overlay.openPlan, onToggleAttend: toggleAttendee, onToggleVote: toggleVote }}
+              onMove={
+                sort === 'manual'
+                  ? (from, to) => {
+                      const position = positionForMove(plans, visible, from, to)
+                      if (position) move(visible[from].id, position)
+                    }
+                  : undefined
+              }
             />
           </>
         )}

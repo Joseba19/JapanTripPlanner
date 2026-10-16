@@ -8,7 +8,7 @@ Web personal (no comercial) para que 4 amigos (Joseba, Filip, Gahona, Ander) pla
 - **Restricciones:** Supabase en plan gratuito (se pausa tras 7 días sin actividad) y Vercel Hobby.
 - **Punto de partida:** el repo está vacío (solo `.git`), así que no hay código que reutilizar.
 
-> Estado (2026-10-16): Fases 0, 1 y 1.5 (portadas) desplegadas en Vercel. Siguiente: Fase 2.
+> Estado (2026-10-16): Fases 0, 1, 1.5 (portadas) y 2 desplegadas en Vercel. Siguiente: Fase 3 (capa visual).
 
 ---
 

@@ -59,6 +59,7 @@
 }
 
 .place {
+  flex: 1;
   display: flex;
   align-items: baseline;
   gap: 6px;
@@ -143,13 +144,103 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 24px;
+  gap: 8px;
+  min-height: 34px;
 }
 
-.votes {
-  display: inline-flex;
+/* Los botones rápidos y el asa quedan por encima del botón estirado que abre el plan */
+.quick,
+.handle {
+  position: relative;
+  z-index: 1;
+}
+
+.quick {
+  display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.vote,
+.attend {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 34px;
+  border-radius: 999px;
   font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  transition:
+    color var(--dur-fast),
+    background-color var(--dur-fast),
+    border-color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.vote:active,
+.attend:active {
+  transform: scale(0.92);
+}
+
+.vote {
+  min-width: 34px;
+  padding: 0 8px;
+  color: var(--text-faint);
+}
+
+.vote:hover {
   color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.vote[aria-pressed='true'] {
+  color: var(--accent);
+}
+
+.attend {
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  color: var(--text-dim);
+}
+
+.attend:hover {
+  color: var(--text);
+  border-color: rgb(235 229 214 / 0.3);
+}
+
+.attend[aria-pressed='true'] {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--status-hecho) 55%, transparent);
+  background: color-mix(in srgb, var(--status-hecho) 14%, transparent);
+}
+
+.attend[aria-pressed='true'] svg {
+  color: var(--status-hecho);
+}
+
+.handle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: -6px -8px -6px -2px;
+  border-radius: 8px;
+  color: var(--text-faint);
+  cursor: grab;
+  /* El asa no hace scroll: así el dedo puede arrastrar tras mantenerla pulsada */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.handle:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.handle:active {
+  cursor: grabbing;
 }

@@ -6,11 +6,14 @@ import StatusBadge from '../ui/StatusBadge.jsx'
 import styles from './PlanCard.module.css'
 import PlanCover from './PlanCover.jsx'
 
-export default function PlanCard({ plan, rate, selected, onOpen }) {
+/** `dragHandle`: props del asa cuando la lista se puede reordenar (orden del grupo). */
+export default function PlanCard({ plan, rate, me, selected, onOpen, onToggleAttend, onToggleVote, dragHandle }) {
   const city = CITY_BY_ID[plan.city]
   const category = CATEGORY_BY_ID[plan.category]
   const price = formatPrice(plan, rate)
   const duration = formatDuration(plan.duration_min)
+  const going = plan.attendees.includes(me)
+  const voted = plan.votes?.includes(me)
 
   return (
     <article className={styles.card} style={{ '--city-color': cityColor(plan.city) }} data-selected={selected || undefined}>
@@ -22,6 +25,11 @@ export default function PlanCard({ plan, rate, selected, onOpen }) {
           {plan.zone && <span className={styles.zone}> · {plan.zone}</span>}
         </span>
         <StatusBadge status={plan.status} />
+        {dragHandle && (
+          <button type="button" className={styles.handle} {...dragHandle}>
+            <Icon name="grip" size={18} />
+          </button>
+        )}
       </div>
 
       <h3 className={styles.title}>
@@ -53,12 +61,22 @@ export default function PlanCard({ plan, rate, selected, onOpen }) {
 
       <div className={styles.bottom}>
         <Avatars people={plan.attendees} size={22} />
-        {plan.votes?.length > 0 && (
-          <span className={styles.votes} aria-label={`${plan.votes.length} con mucho interés`}>
-            <Icon name="heart" size={14} />
-            {plan.votes.length}
-          </span>
-        )}
+        <div className={styles.quick}>
+          <button
+            type="button"
+            className={styles.vote}
+            aria-pressed={voted}
+            aria-label={voted ? 'Quitar "me interesa"' : 'Me interesa'}
+            onClick={() => onToggleVote(plan.id)}
+          >
+            <Icon name="heart" size={16} filled={voted} />
+            {plan.votes?.length > 0 && <span>{plan.votes.length}</span>}
+          </button>
+          <button type="button" className={styles.attend} aria-pressed={going} onClick={() => onToggleAttend(plan.id)}>
+            {going && <Icon name="check" size={14} />}
+            {going ? 'Voy' : 'Me apunto'}
+          </button>
+        </div>
       </div>
     </article>
   )

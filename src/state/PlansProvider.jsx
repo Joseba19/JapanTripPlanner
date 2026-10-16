@@ -4,6 +4,7 @@ import * as plansApi from '../api/plans.js'
 import { fetchSettings, updateRate } from '../api/settings.js'
 import { useToast } from '../components/ui/Toast.jsx'
 import { useIdentity } from '../hooks/useIdentity.jsx'
+import { useRealtimePlans } from '../hooks/useRealtimePlans.js'
 import { DEFAULT_EUR_JPY } from '../lib/constants.js'
 import { keyForTop } from '../lib/ordering.js'
 
@@ -55,11 +56,24 @@ export function PlansProvider({ children }) {
 
   useEffect(() => {
     load()
-    // Hasta tener tiempo real (fase 2), recargamos al volver a la pestaña o a la app
+    // Red de seguridad: el móvil corta el WebSocket en segundo plano, así que al volver recargamos
     const onVisible = () => document.visibilityState === 'visible' && load()
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [load])
+
+  useRealtimePlans({
+    onUpsert: (plan, type) => {
+      const isNew = type === 'INSERT' && !plansRef.current.some((p) => p.id === plan.id)
+      dispatch({ type: 'upsert', plan })
+      if (isNew && plan.created_by && plan.created_by !== me) {
+        toast.show({ message: `${plan.created_by} ha añadido «${plan.title}»` })
+      }
+    },
+    onDelete: (id) => dispatch({ type: 'remove', id }),
+    onRate: (rate) => dispatch({ type: 'rate', rate }),
+    onResync: load,
+  })
 
   /** Aplica el cambio al instante y lo deshace si el servidor falla. */
   const optimistic = useCallback(
@@ -112,6 +126,32 @@ export function PlansProvider({ children }) {
 
   const setStatus = useCallback(
     (id, status) => optimistic(id, { status, updated_by: me }, () => plansApi.updatePlan(id, { status }, me)),
+    [me, optimistic],
+  )
+
+  const toggleIn = (list, name) => (list.includes(name) ? list.filter((n) => n !== name) : [...list, name])
+
+  const toggleAttendee = useCallback(
+    (id) => {
+      const plan = plansRef.current.find((p) => p.id === id)
+      if (!plan) return null
+      return optimistic(id, { attendees: toggleIn(plan.attendees, me), updated_by: me }, () => plansApi.toggleAttendee(id, me))
+    },
+    [me, optimistic],
+  )
+
+  const toggleVote = useCallback(
+    (id) => {
+      const plan = plansRef.current.find((p) => p.id === id)
+      if (!plan) return null
+      return optimistic(id, { votes: toggleIn(plan.votes, me), updated_by: me }, () => plansApi.toggleVote(id, me))
+    },
+    [me, optimistic],
+  )
+
+  /** Nueva posición en el orden del grupo (arrastrar y soltar). */
+  const move = useCallback(
+    (id, position) => optimistic(id, { position, updated_by: me }, () => plansApi.updatePlan(id, { position }, me)),
     [me, optimistic],
   )
 
@@ -172,8 +212,23 @@ export function PlansProvider({ children }) {
     const active = []
     const archived = []
     for (const plan of state.plans) (plan.archived_at ? archived : active).push(plan)
-    return { ...state, active, archived, reload: load, create, update, setStatus, archive, restore, destroy, setRate }
-  }, [state, load, create, update, setStatus, archive, restore, destroy, setRate])
+    return {
+      ...state,
+      active,
+      archived,
+      reload: load,
+      create,
+      update,
+      setStatus,
+      toggleAttendee,
+      toggleVote,
+      move,
+      archive,
+      restore,
+      destroy,
+      setRate,
+    }
+  }, [state, load, create, update, setStatus, toggleAttendee, toggleVote, move, archive, restore, destroy, setRate])
 
   return <PlansContext.Provider value={value}>{children}</PlansContext.Provider>
 }

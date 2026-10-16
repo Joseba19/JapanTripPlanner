@@ -169,3 +169,72 @@
   gap: 10px;
   padding-top: 4px;
 }
+
+.quick {
+  display: flex;
+  gap: 8px;
+}
+
+.attend,
+.vote {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--text-dim);
+  font-weight: 500;
+  transition:
+    color var(--dur-fast),
+    background-color var(--dur-fast),
+    border-color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.attend:active,
+.vote:active {
+  transform: scale(0.97);
+}
+
+.attend:hover,
+.vote:hover {
+  color: var(--text);
+}
+
+.attend[aria-pressed='true'] {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--status-hecho) 55%, transparent);
+  background: color-mix(in srgb, var(--status-hecho) 14%, transparent);
+}
+
+.attend[aria-pressed='true'] svg {
+  color: var(--status-hecho);
+}
+
+.vote[aria-pressed='true'] {
+  color: var(--text);
+  border-color: rgb(255 106 77 / 0.5);
+  background: var(--accent-soft);
+}
+
+.vote svg {
+  color: var(--accent);
+}
+
+.voteCount {
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: var(--surface-hover);
+  font-size: 0.75rem;
+  line-height: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.inlineHeart {
+  vertical-align: -2px;
+  color: var(--accent);
+}

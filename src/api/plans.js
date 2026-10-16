@@ -48,3 +48,25 @@ export async function deletePlan(id) {
   if (error) fail(error)
   if (!data.length) throw new Error('Solo se pueden borrar planes archivados.')
 }
+
+/** Apuntarse/desapuntarse y votar: funciones SQL atómicas para que dos personas a la vez no se pisen. */
+async function toggle(fn, id, me) {
+  const { data, error } = await db.rpc(fn, { p_plan_id: id, p_person: me })
+  if (error) fail(error)
+  if (!data) throw new Error('Este plan ya no existe.')
+  return data
+}
+
+export const toggleAttendee = (id, me) => toggle('toggle_attendee', id, me)
+export const toggleVote = (id, me) => toggle('toggle_vote', id, me)
+
+export async function fetchEvents(planId, limit = 30) {
+  const { data, error } = await db
+    .from('plan_events')
+    .select('id, actor, action, detail, at')
+    .eq('plan_id', planId)
+    .order('at', { ascending: false })
+    .limit(limit)
+  if (error) fail(error)
+  return data
+}

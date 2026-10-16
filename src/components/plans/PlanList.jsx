@@ -1,7 +1,12 @@
 import PlanCard from './PlanCard.jsx'
 import styles from './PlanList.module.css'
+import SortableList from './SortableList.jsx'
 
-export default function PlanList({ plans, rate, selectedId, onOpen, loading, empty }) {
+/**
+ * Lista de tarjetas. Con `onMove` se puede reordenar arrastrando (solo en el orden del grupo).
+ * `cardProps` se pasa a cada tarjeta (me, rate, onOpen, onToggleAttend, onToggleVote).
+ */
+export default function PlanList({ plans, selectedId, loading, empty, onMove, cardProps }) {
   if (loading) {
     return (
       <ul className={styles.list} aria-busy="true" aria-label="Cargando planes">
@@ -14,12 +19,16 @@ export default function PlanList({ plans, rate, selectedId, onOpen, loading, emp
 
   if (!plans.length) return empty
 
+  const card = (plan, dragHandle) => (
+    <PlanCard plan={plan} selected={plan.id === selectedId} dragHandle={dragHandle} {...cardProps} />
+  )
+
+  if (onMove) return <SortableList plans={plans} onMove={onMove} renderItem={card} />
+
   return (
     <ul className={styles.list}>
       {plans.map((plan) => (
-        <li key={plan.id}>
-          <PlanCard plan={plan} rate={rate} selected={plan.id === selectedId} onOpen={onOpen} />
-        </li>
+        <li key={plan.id}>{card(plan)}</li>
       ))}
     </ul>
   )

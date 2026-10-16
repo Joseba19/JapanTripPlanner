@@ -1,0 +1,63 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 0.875rem;
+}
+
+/* Línea vertical que une los avatares, como un hilo */
+.event + .event::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: -6px;
+  height: 12px;
+  width: 1px;
+  background: var(--line-strong);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-dim);
+}
+
+.text strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.time {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+}
+
+.muted {
+  font-size: 0.875rem;
+  color: var(--text-faint);
+}
+
+.more {
+  align-self: flex-start;
+  min-height: 32px;
+  color: var(--accent);
+  font-size: 0.8125rem;
+}

@@ -1,0 +1,22 @@
+.item {
+  position: relative;
+}
+
+.item[data-dragging] {
+  z-index: 3;
+}
+
+/* La tarjeta "se levanta" mientras se arrastra */
+.item[data-dragging] > article {
+  border-color: var(--line-strong);
+  background: var(--surface-hover);
+  box-shadow: 0 24px 48px -16px rgb(0 0 0 / 0.85);
+  transform: scale(1.02);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item[data-dragging] > article {
+    transform: none;
+  }
+}
