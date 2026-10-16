@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import CityTabs from '../components/filters/CityTabs.jsx'
 import FilterChips from '../components/filters/FilterChips.jsx'
 import FilterPanel from '../components/filters/FilterPanel.jsx'
@@ -30,12 +30,23 @@ export default function PlansPage() {
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
+  // La pestaña y el buscador responden al instante; la lista se recalcula en segundo plano
+  // (React lo trocea en bloques pequeños, así una lista larga no bloquea el toque en móviles modestos)
+  const listFilters = useDeferredValue(filters)
+  const listSort = useDeferredValue(sort)
+
   // La ciudad se cuenta aparte para que las pestañas muestren cuántos hay en cada una con el resto de filtros
-  const withoutCity = useMemo(() => filterPlans(active, { ...filters, city: '' }, { me, rate }), [active, filters, me, rate])
-  const visible = useMemo(
-    () => sortPlans(filters.city ? withoutCity.filter((p) => p.city === filters.city) : withoutCity, sort, rate),
-    [withoutCity, filters.city, sort, rate],
+  const withoutCity = useMemo(
+    () => filterPlans(active, { ...listFilters, city: '' }, { me, rate }),
+    [active, listFilters, me, rate],
   )
+  // Todas las tarjetas se montan ordenadas; los filtros solo deciden cuáles se ven (ver PlanList)
+  const ordered = useMemo(() => sortPlans(active, listSort, rate), [active, listSort, rate])
+  const visibleIds = useMemo(
+    () => new Set((listFilters.city ? withoutCity.filter((p) => p.city === listFilters.city) : withoutCity).map((p) => p.id)),
+    [withoutCity, listFilters.city],
+  )
+  const visible = useMemo(() => ordered.filter((p) => visibleIds.has(p.id)), [ordered, visibleIds])
   const cityCounts = useMemo(() => {
     const counts = { all: withoutCity.length }
     for (const plan of withoutCity) counts[plan.city] = (counts[plan.city] ?? 0) + 1
@@ -113,26 +124,44 @@ export default function PlansPage() {
     )
   }
 
-  const emptyList =
-    active.length === 0 ? (
-      <EmptyState
-        kanji="旅"
-        title="Aún no hay planes"
-        action={<Button variant="primary" icon="plus" onClick={overlay.openNew}>Añadir el primero</Button>}
-      >
-        Templos, ramen, onsen, karaoke… Todo lo que queráis hacer en Japón empieza aquí.
-      </EmptyState>
-    ) : (
-      <EmptyState
-        kanji="空"
-        title="Ningún plan coincide"
-        action={
-          <Button onClick={() => setFilters(() => EMPTY_FILTERS)}>Ver todos los planes</Button>
-        }
-      >
-        Prueba con otra búsqueda o quita algún filtro.
-      </EmptyState>
-    )
+  const noPlansAtAll = active.length === 0
+  const emptyList = useMemo(
+    () =>
+      noPlansAtAll ? (
+        <EmptyState
+          kanji="旅"
+          title="Aún no hay planes"
+          action={<Button variant="primary" icon="plus" onClick={overlay.openNew}>Añadir el primero</Button>}
+        >
+          Templos, ramen, onsen, karaoke… Todo lo que queráis hacer en Japón empieza aquí.
+        </EmptyState>
+      ) : (
+        <EmptyState
+          kanji="空"
+          title="Ningún plan coincide"
+          action={<Button onClick={() => setFilters(() => EMPTY_FILTERS)}>Ver todos los planes</Button>}
+        >
+          Prueba con otra búsqueda o quita algún filtro.
+        </EmptyState>
+      ),
+    [noPlansAtAll, overlay.openNew, setFilters],
+  )
+
+  // Props estables: PlanList está memorizada y solo se repinta cuando cambia la lista (en segundo plano)
+  const cardProps = useMemo(
+    () => ({ me, rate, onOpen: overlay.openPlan, onToggleAttend: toggleAttendee, onToggleVote: toggleVote }),
+    [me, rate, overlay.openPlan, toggleAttendee, toggleVote],
+  )
+  const onMove = useMemo(
+    () =>
+      listSort === 'manual'
+        ? (from, to) => {
+            const position = positionForMove(plans, visible, from, to)
+            if (position) move(visible[from].id, position)
+          }
+        : undefined,
+    [listSort, plans, visible, move],
+  )
 
   const filterPanel = (
     <FilterPanel filters={filters} onChange={setFilters} onClear={clearFilters} activeCount={activeCount} me={me} />
@@ -186,19 +215,13 @@ export default function PlansPage() {
               </div>
             )}
             <PlanList
-              plans={visible}
+              plans={ordered}
+              visibleIds={visibleIds}
               loading={status === 'loading'}
               selectedId={isDesktop ? openId : null}
               empty={emptyList}
-              cardProps={{ me, rate, onOpen: overlay.openPlan, onToggleAttend: toggleAttendee, onToggleVote: toggleVote }}
-              onMove={
-                sort === 'manual'
-                  ? (from, to) => {
-                      const position = positionForMove(plans, visible, from, to)
-                      if (position) move(visible[from].id, position)
-                    }
-                  : undefined
-              }
+              cardProps={cardProps}
+              onMove={onMove}
             />
           </>
         )}
@@ -214,7 +237,9 @@ export default function PlansPage() {
                   <Icon name="close" />
                 </button>
               </div>
-              <div className={styles.panelBody}>{panel}</div>
+              <div className={styles.panelBody} key={overlay.isNew ? 'new' : `${overlay.editId ? 'edit' : 'plan'}-${openId}`}>
+                {panel}
+              </div>
             </>
           ) : (
             <EmptyState kanji="選" title="Elige un plan">

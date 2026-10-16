@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
 import Button from '../components/ui/Button.jsx'
 import PersonPicker from '../components/ui/PersonPicker.jsx'
+import Segmented from '../components/ui/Segmented.jsx'
 import { useToast } from '../components/ui/Toast.jsx'
 import { useIdentity } from '../hooks/useIdentity.jsx'
+import { THEMES, useTheme } from '../hooks/useTheme.jsx'
 import { PEOPLE } from '../lib/constants.js'
 import { usePlans } from '../state/PlansProvider.jsx'
 import styles from './SettingsPage.module.css'
 
 export default function SettingsPage() {
   const { me, setMe } = useIdentity()
+  const { theme, setTheme } = useTheme()
   const { plans, rate, setRate } = usePlans()
   const toast = useToast()
   const [rateInput, setRateInput] = useState(() => String(rate).replace('.', ','))
@@ -54,6 +57,12 @@ export default function SettingsPage() {
         <h2 className={styles.heading}>¿Quién eres?</h2>
         <p className={styles.text}>Solo en este dispositivo. Se usa para la autoría de los cambios y para "Mis planes".</p>
         <PersonPicker label="Quién eres" options={PEOPLE} value={me} onChange={setMe} />
+      </section>
+
+      <section className={styles.section}>
+        <h2 className={styles.heading}>Tema</h2>
+        <p className={styles.text}>Solo en este dispositivo. "Sistema" sigue el modo claro u oscuro del móvil u ordenador.</p>
+        <Segmented label="Tema" options={THEMES} value={theme} onChange={setTheme} />
       </section>
 
       <section className={styles.section}>

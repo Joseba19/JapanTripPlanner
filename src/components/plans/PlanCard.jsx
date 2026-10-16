@@ -1,13 +1,15 @@
+import { memo } from 'react'
 import { CATEGORY_BY_ID, CITY_BY_ID, cityColor } from '../../lib/constants.js'
 import { formatDuration, formatPrice } from '../../lib/format.js'
+import { haptic } from '../../lib/motion.js'
 import Avatars from '../ui/Avatars.jsx'
 import Icon from '../ui/Icon.jsx'
-import StatusBadge from '../ui/StatusBadge.jsx'
+import Stamp from '../ui/Stamp.jsx'
 import styles from './PlanCard.module.css'
 import PlanCover from './PlanCover.jsx'
 
 /** `dragHandle`: props del asa cuando la lista se puede reordenar (orden del grupo). */
-export default function PlanCard({ plan, rate, me, selected, onOpen, onToggleAttend, onToggleVote, dragHandle }) {
+function PlanCard({ plan, rate, me, selected, onOpen, onToggleAttend, onToggleVote, dragHandle }) {
   const city = CITY_BY_ID[plan.city]
   const category = CATEGORY_BY_ID[plan.category]
   const price = formatPrice(plan, rate)
@@ -16,7 +18,13 @@ export default function PlanCard({ plan, rate, me, selected, onOpen, onToggleAtt
   const voted = plan.votes?.includes(me)
 
   return (
-    <article className={styles.card} style={{ '--city-color': cityColor(plan.city) }} data-selected={selected || undefined}>
+    <article
+      className={styles.card}
+      style={{ '--city-color': cityColor(plan.city) }}
+      data-selected={selected || undefined}
+      data-status={plan.status}
+      data-cover={plan.image_url ? '' : undefined}
+    >
       <PlanCover url={plan.image_url} />
       <div className={styles.top}>
         <span className={styles.place}>
@@ -24,7 +32,7 @@ export default function PlanCard({ plan, rate, me, selected, onOpen, onToggleAtt
           {city?.label}
           {plan.zone && <span className={styles.zone}> · {plan.zone}</span>}
         </span>
-        <StatusBadge status={plan.status} />
+        <Stamp status={plan.status} />
         {dragHandle && (
           <button type="button" className={styles.handle} {...dragHandle}>
             <Icon name="grip" size={18} />
@@ -67,12 +75,23 @@ export default function PlanCard({ plan, rate, me, selected, onOpen, onToggleAtt
             className={styles.vote}
             aria-pressed={voted}
             aria-label={voted ? 'Quitar "me interesa"' : 'Me interesa'}
-            onClick={() => onToggleVote(plan.id)}
+            onClick={() => {
+              haptic()
+              onToggleVote(plan.id)
+            }}
           >
             <Icon name="heart" size={16} filled={voted} />
             {plan.votes?.length > 0 && <span>{plan.votes.length}</span>}
           </button>
-          <button type="button" className={styles.attend} aria-pressed={going} onClick={() => onToggleAttend(plan.id)}>
+          <button
+            type="button"
+            className={styles.attend}
+            aria-pressed={going}
+            onClick={() => {
+              haptic()
+              onToggleAttend(plan.id)
+            }}
+          >
             {going && <Icon name="check" size={14} />}
             {going ? 'Voy' : 'Me apunto'}
           </button>
@@ -81,3 +100,20 @@ export default function PlanCard({ plan, rate, me, selected, onOpen, onToggleAtt
     </article>
   )
 }
+
+/** El asa cambia de objeto en cada render; solo importan sus atributos (aria-pressed, tabIndex…). */
+function sameHandle(a, b) {
+  if (!a || !b) return a === b
+  for (const key in a) {
+    if (key !== 'ref' && typeof a[key] !== 'function' && a[key] !== b[key]) return false
+  }
+  return true
+}
+
+// Con 100+ planes, cambiar un filtro no debe volver a pintar las tarjetas que no cambian
+export default memo(PlanCard, (prev, next) => {
+  for (const key of ['plan', 'rate', 'me', 'selected', 'onOpen', 'onToggleAttend', 'onToggleVote']) {
+    if (prev[key] !== next[key]) return false
+  }
+  return sameHandle(prev.dragHandle, next.dragHandle)
+})

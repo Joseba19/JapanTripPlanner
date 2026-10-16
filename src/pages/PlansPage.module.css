@@ -86,9 +86,7 @@
   border-radius: 50%;
   background: var(--accent-fill);
   color: var(--on-accent);
-  box-shadow:
-    0 10px 30px -8px rgb(217 67 42 / 0.6),
-    0 0 0 1px rgb(255 255 255 / 0.08) inset;
+  box-shadow: var(--shadow-fab);
   transition: transform var(--dur-fast) var(--ease-out);
 }
 
@@ -203,5 +201,13 @@
   .panelBody {
     flex: 1;
     padding: 4px var(--gutter) 20px;
+    animation: panel-in var(--dur) var(--ease-out);
+  }
+
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
   }
 }

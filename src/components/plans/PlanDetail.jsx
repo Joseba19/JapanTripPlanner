@@ -2,7 +2,9 @@ import { CATEGORY_BY_ID, CITY_BY_ID, cityColor, STATUSES, statusColor } from '..
 import { formatDuration, formatPrice, isUrl, mapsUrl, relativeTime } from '../../lib/format.js'
 import { Avatar } from '../ui/Avatars.jsx'
 import Button from '../ui/Button.jsx'
+import { haptic } from '../../lib/motion.js'
 import Icon from '../ui/Icon.jsx'
+import Stamp from '../ui/Stamp.jsx'
 import Segmented from '../ui/Segmented.jsx'
 import styles from './PlanDetail.module.css'
 import PlanCover from './PlanCover.jsx'
@@ -30,21 +32,24 @@ export default function PlanDetail({ plan, rate, me, onEdit, onArchive, onRestor
       )}
 
       <header className={styles.header}>
-        <p className={styles.place}>
-          <span className={`${styles.cityKanji} kanji`} aria-hidden="true">{city?.kanji}</span>
-          {city?.label}
-          {plan.zone && <span className={styles.zone}> · {plan.zone}</span>}
-        </p>
+        <div className={styles.headerTop}>
+          <p className={styles.place}>
+            <span className={`${styles.cityKanji} kanji`} aria-hidden="true">{city?.kanji}</span>
+            {city?.label}
+            {plan.zone && <span className={styles.zone}> · {plan.zone}</span>}
+          </p>
+          <Stamp status={plan.status} size="lg" />
+        </div>
         <h2 className={styles.title}>{plan.title}</h2>
       </header>
 
       {!archived && (
         <div className={styles.quick}>
-          <button type="button" className={styles.attend} aria-pressed={going} onClick={onToggleAttend}>
+          <button type="button" className={styles.attend} aria-pressed={going} onClick={() => (haptic(), onToggleAttend())}>
             <Icon name={going ? 'check' : 'plus'} size={18} />
             {going ? 'Voy' : 'Me apunto'}
           </button>
-          <button type="button" className={styles.vote} aria-pressed={voted} onClick={onToggleVote}>
+          <button type="button" className={styles.vote} aria-pressed={voted} onClick={() => (haptic(), onToggleVote())}>
             <Icon name="heart" size={18} filled={voted} />
             Me interesa
             {plan.votes.length > 0 && <span className={styles.voteCount}>{plan.votes.length}</span>}

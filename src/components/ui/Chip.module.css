@@ -20,7 +20,7 @@
 
 .chip:hover {
   color: var(--text);
-  border-color: rgb(235 229 214 / 0.3);
+  border-color: var(--line-hover);
 }
 
 .chip:active {

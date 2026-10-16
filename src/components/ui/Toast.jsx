@@ -17,7 +17,7 @@ export function ToastProvider({ children }) {
   const show = useCallback(
     ({ message, actionLabel, onAction, tone = 'info', duration = 4000 }) => {
       const id = ++nextId
-      setToasts((list) => [...list.slice(-2), { id, message, actionLabel, onAction, tone }])
+      setToasts((list) => [...list.slice(-2), { id, message, actionLabel, onAction, tone, duration }])
       timers.current.set(id, setTimeout(() => dismiss(id), duration))
       return id
     },
@@ -34,7 +34,7 @@ export function ToastProvider({ children }) {
       {children}
       <div className={styles.region} role="status" aria-live="polite">
         {toasts.map((toast) => (
-          <div key={toast.id} className={styles.toast} data-tone={toast.tone}>
+          <div key={toast.id} className={styles.toast} data-tone={toast.tone} data-toast>
             <span className={styles.message}>{toast.message}</span>
             {toast.actionLabel && (
               <button
@@ -51,6 +51,17 @@ export function ToastProvider({ children }) {
             <button type="button" className={styles.close} onClick={() => dismiss(toast.id)} aria-label="Cerrar aviso">
               ×
             </button>
+            {toast.actionLabel && (
+              // Pincelada que se consume: el tiempo que queda para deshacer
+              <svg className={styles.timer} viewBox="0 0 100 4" preserveAspectRatio="none" aria-hidden="true">
+                <path
+                  d="M1 2.4 C 20 1.2, 38 3.1, 55 2.2 S 86 1.5, 99 2.5"
+                  pathLength="1"
+                  data-keep-motion
+                  style={{ '--keep-duration': `${toast.duration}ms`, animationDuration: `${toast.duration}ms` }}
+                />
+              </svg>
+            )}
           </div>
         ))}
       </div>

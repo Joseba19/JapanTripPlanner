@@ -41,26 +41,45 @@
   background: var(--surface);
 }
 
-.tab::after {
-  content: '';
+.brush {
   position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: 3px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--tab-color);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform var(--dur) var(--ease-out);
+  left: 8px;
+  right: 8px;
+  bottom: 1px;
+  width: calc(100% - 16px);
+  height: 8px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.brush path {
+  fill: none;
+  stroke: var(--tab-color);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  /* opacity 0 en reposo: el extremo redondeado del trazo vacío dejaría un punto */
+  opacity: 0;
+  transition:
+    stroke-dashoffset var(--dur-slow) var(--ease-out),
+    opacity var(--dur-fast);
 }
 
 .tab[aria-checked='true'] {
   color: var(--text);
 }
 
-.tab[aria-checked='true']::after {
-  transform: scaleX(1);
+.tab[aria-checked='true'] .brush path {
+  stroke-dashoffset: 0;
+  opacity: 1;
+}
+
+@media (min-width: 1024px) {
+  .tab {
+    gap: 6px;
+    padding: 0 10px 0 8px;
+  }
 }
 
 .kanji {

@@ -10,7 +10,7 @@
 .item[data-dragging] > article {
   border-color: var(--line-strong);
   background: var(--surface-hover);
-  box-shadow: 0 24px 48px -16px rgb(0 0 0 / 0.85);
+  box-shadow: var(--shadow-lift);
   transform: scale(1.02);
   will-change: transform;
 }

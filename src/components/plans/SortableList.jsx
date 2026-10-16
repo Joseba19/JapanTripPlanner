@@ -10,8 +10,11 @@ import {
 import { rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useMemo } from 'react'
+import { haptic } from '../../lib/motion.js'
 import listStyles from './PlanList.module.css'
 import styles from './SortableList.module.css'
+
+export const STAGGERED = 10 // primeras tarjetas visibles con animación de entrada
 
 const screenReaderInstructions = {
   draggable:
@@ -20,9 +23,10 @@ const screenReaderInstructions = {
 
 /**
  * Lista reordenable con dedo (mantener pulsado el asa), ratón y teclado.
- * `renderItem(plan, dragHandleProps)` pinta cada tarjeta; `onMove(fromIndex, toIndex)` se llama al soltar.
+ * `plans` son todos; solo los de `visibleIndex` se ven y se pueden mover (los demás quedan ocultos y desactivados).
+ * `renderItem(plan, dragHandleProps)` pinta cada tarjeta; `onMove(fromIndex, toIndex)` recibe índices de la lista visible.
  */
-export default function SortableList({ plans, renderItem, onMove }) {
+export default function SortableList({ plans, visibleIndex, renderItem, onMove }) {
   const sensors = useSensors(
     // Ratón: basta con moverlo 4 px para empezar
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
@@ -31,7 +35,7 @@ export default function SortableList({ plans, renderItem, onMove }) {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   )
 
-  const ids = useMemo(() => plans.map((p) => p.id), [plans])
+  const ids = useMemo(() => [...visibleIndex.keys()], [visibleIndex])
   const title = (id) => plans.find((p) => p.id === id)?.title ?? 'el plan'
   const position = (id) => ids.indexOf(id) + 1
 
@@ -49,15 +53,17 @@ export default function SortableList({ plans, renderItem, onMove }) {
       sensors={sensors}
       collisionDetection={closestCenter}
       accessibility={{ announcements, screenReaderInstructions }}
+      onDragStart={() => haptic(10)}
       onDragEnd={({ active, over }) => {
         if (!over || active.id === over.id) return
+        haptic(6)
         onMove(ids.indexOf(active.id), ids.indexOf(over.id))
       }}
     >
       <SortableContext items={ids} strategy={rectSortingStrategy}>
         <ul className={listStyles.list}>
           {plans.map((plan) => (
-            <SortableItem key={plan.id} plan={plan} renderItem={renderItem} />
+            <SortableItem key={plan.id} plan={plan} index={visibleIndex.get(plan.id)} renderItem={renderItem} />
           ))}
         </ul>
       </SortableContext>
@@ -65,16 +71,21 @@ export default function SortableList({ plans, renderItem, onMove }) {
   )
 }
 
-function SortableItem({ plan, renderItem }) {
+function SortableItem({ plan, index, renderItem }) {
+  const hidden = index === undefined
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({
     id: plan.id,
+    // Oculto por un filtro: ni se arrastra ni cuenta como destino al soltar
+    disabled: hidden,
   })
   return (
     <li
       ref={setNodeRef}
+      hidden={hidden}
+      data-stagger={index < STAGGERED || undefined}
       className={styles.item}
       data-dragging={isDragging || undefined}
-      style={{ transform: CSS.Translate.toString(transform), transition }}
+      style={{ transform: CSS.Translate.toString(transform), transition, '--i': index }}
     >
       {renderItem(plan, {
         ref: setActivatorNodeRef,

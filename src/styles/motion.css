@@ -1,0 +1,24 @@
+/*
+ * Movimiento reducido: si el sistema lo pide, las animaciones y transiciones se quedan en nada
+ * (los cambios de estado siguen siendo visibles, sin desplazamientos ni rebotes).
+ * Los componentes que necesitan saberlo en JS usan lib/motion.js.
+ * Regla general de la app: solo se animan transform y opacity (baratas en móviles de gama media).
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after,
+  ::backdrop {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* La barra de tiempo del aviso "Deshacer" informa del tiempo restante: se mantiene */
+  [data-keep-motion] {
+    animation-duration: var(--keep-duration) !important;
+  }
+}

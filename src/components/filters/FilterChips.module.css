@@ -19,7 +19,7 @@
 }
 
 .chip:hover {
-  background: rgb(255 106 77 / 0.2);
+  background: var(--accent-softer);
 }
 
 .chip svg {

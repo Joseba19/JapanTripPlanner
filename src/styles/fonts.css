@@ -1,0 +1,12 @@
+/*
+ * Shippori Mincho recortada a latín + los kanji de la interfaz (≈20 KB en vez de 8,6 MB).
+ * Se regenera con scripts/subset-fonts.py. Licencia: public/fonts/OFL-ShipporiMincho.txt
+ * El texto normal (Zen Kaku Gothic New, solo latín) se importa en main.jsx desde @fontsource.
+ */
+@font-face {
+  font-family: 'Shippori Mincho';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/shippori-mincho-600.woff2') format('woff2');
+}

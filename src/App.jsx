@@ -4,6 +4,7 @@ import AppShell from './components/layout/AppShell.jsx'
 import { EmptyState } from './components/plans/PlanList.jsx'
 import { ToastProvider } from './components/ui/Toast.jsx'
 import { IdentityProvider, useIdentity } from './hooks/useIdentity.jsx'
+import { ThemeProvider } from './hooks/useTheme.jsx'
 import { db } from './lib/supabase.js'
 import ArchivePage from './pages/ArchivePage.jsx'
 import PlansPage from './pages/PlansPage.jsx'
@@ -25,21 +26,23 @@ export default function App() {
   }
 
   return (
-    <ToastProvider>
-      <IdentityProvider>
-        <IdentityGate>
-          <PlansProvider>
-            <Routes>
-              <Route element={<AppShell />}>
-                <Route index element={<PlansPage />} />
-                <Route path="archivo" element={<ArchivePage />} />
-                <Route path="ajustes" element={<SettingsPage />} />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Route>
-            </Routes>
-          </PlansProvider>
-        </IdentityGate>
-      </IdentityProvider>
-    </ToastProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <IdentityProvider>
+          <IdentityGate>
+            <PlansProvider>
+              <Routes>
+                <Route element={<AppShell />}>
+                  <Route index element={<PlansPage />} />
+                  <Route path="archivo" element={<ArchivePage />} />
+                  <Route path="ajustes" element={<SettingsPage />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Route>
+              </Routes>
+            </PlansProvider>
+          </IdentityGate>
+        </IdentityProvider>
+      </ToastProvider>
+    </ThemeProvider>
   )
 }

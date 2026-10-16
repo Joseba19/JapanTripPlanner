@@ -13,6 +13,17 @@
   line-height: 1;
 }
 
+.avatar[data-new] {
+  animation: pop var(--dur-slow) var(--ease-spring) both;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.3) translateY(4px);
+  }
+}
+
 .stack {
   display: inline-flex;
 }

@@ -25,12 +25,19 @@
 .mark {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px 7px 6px 8px;
   background: var(--accent-fill);
   color: var(--on-accent);
-  font-size: 1.125rem;
+  box-shadow: inset 0 0 0 2px var(--accent-fill), inset 0 0 0 3.5px var(--on-accent);
+  font-size: 1.0625rem;
+  transform: rotate(-5deg);
+  transition: transform var(--dur) var(--ease-spring);
+}
+
+.brand:hover .mark {
+  transform: rotate(0deg) scale(1.05);
 }
 
 .name {

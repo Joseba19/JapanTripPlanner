@@ -19,7 +19,12 @@
 }
 
 .dialog::backdrop {
-  background: rgb(4 4 7 / 0.66);
+  background: var(--backdrop);
+  animation: fade-in var(--dur) var(--ease-out);
+}
+
+.dialog[data-closing]::backdrop {
+  animation: fade-out var(--dur) ease-in forwards;
 }
 
 .panel {
@@ -30,11 +35,27 @@
   border-top: 1px solid var(--line-strong);
   border-radius: var(--radius-l) var(--radius-l) 0 0;
   padding-bottom: var(--safe-b);
-  animation: sheet-in var(--dur) var(--ease-out);
+  /* --drag-y: desplazamiento mientras se arrastra la cabecera para cerrar */
+  transform: translateY(var(--drag-y, 0px));
+  transition: transform var(--dur) var(--ease-out);
+  animation: sheet-in var(--dur-slow) var(--ease-out);
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.panel[data-dragging] {
+  transition: none;
+}
+
+.dialog[data-closing] .panel {
+  animation: sheet-out var(--dur) ease-in forwards;
 }
 
 .header {
   position: relative;
+  touch-action: none; /* el gesto de arrastrar hacia abajo es nuestro, no del scroll */
   display: flex;
   align-items: center;
   gap: 12px;
@@ -101,6 +122,10 @@
   animation-name: dialog-in;
 }
 
+.dialog[data-variant='confirm'][data-closing] .panel {
+  animation-name: dialog-out;
+}
+
 @media (min-width: 720px) {
   .dialog[open] {
     justify-content: center;
@@ -114,6 +139,10 @@
     border-radius: var(--radius-l);
     padding-bottom: 0;
     animation-name: dialog-in;
+  }
+
+  .dialog[data-closing] .panel {
+    animation-name: dialog-out;
   }
 
   .grabber {
@@ -131,6 +160,31 @@
 @keyframes dialog-in {
   from {
     transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes dialog-out {
+  to {
+    transform: translateY(6px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
     opacity: 0;
   }
 }

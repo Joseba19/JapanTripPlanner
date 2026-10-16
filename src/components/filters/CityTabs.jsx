@@ -1,6 +1,15 @@
 import { CITIES, cityColor } from '../../lib/constants.js'
 import styles from './CityTabs.module.css'
 
+/** Pincelada irregular que se "pinta" con stroke-dashoffset (barato: un solo trazo SVG). */
+export function BrushStroke({ className }) {
+  return (
+    <svg className={className} viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M2 6.5 C 18 3.5, 34 7.5, 52 5.2 S 84 3.6, 98 5.8" pathLength="1" />
+    </svg>
+  )
+}
+
 /** Selector de ciudad deslizable. `counts`: { tokio: 3, … , all: 10 } */
 export default function CityTabs({ value, counts, onChange }) {
   const options = [{ id: '', label: 'Todas', kanji: '全' }, ...CITIES]
@@ -23,6 +32,7 @@ export default function CityTabs({ value, counts, onChange }) {
               {city.label}
               <span className={styles.count}>{counts[city.id || 'all'] ?? 0}</span>
             </span>
+            <BrushStroke className={styles.brush} />
           </button>
         )
       })}

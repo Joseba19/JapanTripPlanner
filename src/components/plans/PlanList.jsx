@@ -1,12 +1,17 @@
+import { memo } from 'react'
 import PlanCard from './PlanCard.jsx'
 import styles from './PlanList.module.css'
-import SortableList from './SortableList.jsx'
+import SortableList, { STAGGERED } from './SortableList.jsx'
 
 /**
- * Lista de tarjetas. Con `onMove` se puede reordenar arrastrando (solo en el orden del grupo).
- * `cardProps` se pasa a cada tarjeta (me, rate, onOpen, onToggleAttend, onToggleVote).
+ * Lista de tarjetas.
+ * - `plans`: todos los planes activos, ya ordenados. `visibleIds`: los que pasan los filtros.
+ *   Las tarjetas se montan una vez y filtrar solo las oculta: con 100+ planes, montar y desmontar
+ *   en cada pulsación costaba ~200 ms en un móvil de gama media.
+ * - Con `onMove` se puede reordenar arrastrando (solo en el orden del grupo).
+ * - `cardProps` se pasa a cada tarjeta (me, rate, onOpen, onToggleAttend, onToggleVote).
  */
-export default function PlanList({ plans, selectedId, loading, empty, onMove, cardProps }) {
+export default memo(function PlanList({ plans, visibleIds, selectedId, loading, empty, onMove, cardProps }) {
   if (loading) {
     return (
       <ul className={styles.list} aria-busy="true" aria-label="Cargando planes">
@@ -17,27 +22,48 @@ export default function PlanList({ plans, selectedId, loading, empty, onMove, ca
     )
   }
 
-  if (!plans.length) return empty
-
   const card = (plan, dragHandle) => (
     <PlanCard plan={plan} selected={plan.id === selectedId} dragHandle={dragHandle} {...cardProps} />
   )
 
-  if (onMove) return <SortableList plans={plans} onMove={onMove} renderItem={card} />
+  // Posición de cada plan entre los visibles: para el escalonado de la animación de entrada
+  const visibleIndex = new Map()
+  for (const plan of plans) if (visibleIds.has(plan.id)) visibleIndex.set(plan.id, visibleIndex.size)
 
   return (
-    <ul className={styles.list}>
-      {plans.map((plan) => (
-        <li key={plan.id}>{card(plan)}</li>
-      ))}
-    </ul>
+    <>
+      {visibleIds.size === 0 && empty}
+      {onMove ? (
+        <SortableList plans={plans} visibleIndex={visibleIndex} onMove={onMove} renderItem={card} />
+      ) : (
+        <ul className={styles.list}>
+          {plans.map((plan) => (
+            <li
+              key={plan.id}
+              hidden={!visibleIndex.has(plan.id)}
+              data-stagger={visibleIndex.get(plan.id) < STAGGERED || undefined}
+              style={{ '--i': visibleIndex.get(plan.id) }}
+            >
+              {card(plan)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   )
-}
+})
 
 export function EmptyState({ kanji = '空', title, children, action }) {
   return (
     <div className={styles.empty}>
-      <span className={`${styles.emptyKanji} kanji`} aria-hidden="true">{kanji}</span>
+      <span className={styles.enso} aria-hidden="true">
+        {/* Ensō: el círculo zen de un solo trazo, que se dibuja al aparecer */}
+        <svg viewBox="0 0 100 100">
+          <path className={styles.ensoBack} d="M57 9 C 82 13, 95 36, 90 60 C 85 84, 60 95, 38 89 C 15 82, 5 58, 11 36 C 16 20, 28 11, 41 9" pathLength="1" />
+          <path className={styles.ensoInk} d="M57 9 C 82 13, 95 36, 90 60 C 85 84, 60 95, 38 89 C 15 82, 5 58, 11 36 C 16 20, 28 11, 41 9" pathLength="1" />
+        </svg>
+        <span className="kanji">{kanji}</span>
+      </span>
       <p className={styles.emptyTitle}>{title}</p>
       {children && <p className={styles.emptyText}>{children}</p>}
       {action}

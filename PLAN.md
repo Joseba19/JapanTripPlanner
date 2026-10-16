@@ -8,7 +8,7 @@ Web personal (no comercial) para que 4 amigos (Joseba, Filip, Gahona, Ander) pla
 - **Restricciones:** Supabase en plan gratuito (se pausa tras 7 días sin actividad) y Vercel Hobby.
 - **Punto de partida:** el repo está vacío (solo `.git`), así que no hay código que reutilizar.
 
-> Estado (2026-10-16): Fases 0, 1, 1.5 (portadas) y 2 desplegadas en Vercel. Siguiente: Fase 3 (capa visual).
+> Estado (2026-10-16): Fases 0, 1, 1.5, 2 y 3 desplegadas en Vercel. Siguiente: Fase 4 (PWA sin conexión y pulido).
 
 ---
 
@@ -193,6 +193,12 @@ Decisiones: **subir foto o pegar URL**, **banda 16:9 en la parte superior de la 
   - Lighthouse móvil: Performance ≥ 90 y Accesibilidad ≥ 95.
   - Emular `prefers-reduced-motion` en DevTools y probarlo en el móvil real (iOS: *Reducir movimiento*; Android: *Quitar animaciones*).
   - Contraste AA en ambos temas.
+
+**Notas de implementación (Fase 3, hecha):**
+- **Sin la librería `motion`.** Todo se ha hecho con CSS y un poco de JS (cierre animado y arrastre de la hoja), así que la app no pesa 15 KB más.
+- **Fuentes:** Shippori Mincho está recortada a 20 KB con `scripts/subset-fonts.py`; Zen Kaku Gothic New se carga solo con caracteres latinos (≈10 KB por peso). La textura washi la genera `scripts/make-washi.mjs` (4 KB).
+- **Lighthouse móvil:** Rendimiento 100, Accesibilidad 100 (en los dos temas) y Buenas prácticas 100.
+- **Interacción con CPU ×4:** con 3 o 10 planes, una sola tarea larga (abrir la hoja de filtros, unos 60–90 ms). **Pendiente:** con 40 planes o más, cambiar de ciudad o de búsqueda produce tareas de 50–135 ms, tanto con arrastre como sin él, y casi no depende del número de planes. La mayor parte es recálculo de estilos y pintado de las tarjetas visibles. Ya aplicado: tarjetas memorizadas y montadas una sola vez (filtrar solo las oculta), filtros diferidos con `useDeferredValue`, sin selectores `:has()` y animación de entrada solo en las 10 primeras. Si se nota en un móvil real, el siguiente paso sería simplificar el DOM de cada tarjeta o virtualizar la lista.
 
 ### Fase 4 — PWA sin conexión, imágenes y pulido
 - `vite-plugin-pwa`: manifest (icono 旅, `theme_color` sumi), *service worker* que precachea la app y una instantánea de los planes en IndexedDB/localStorage para consultarlos **sin conexión en modo solo lectura**. Sin conexión aparece una insignia "Sin conexión" y los botones de escritura se desactivan.

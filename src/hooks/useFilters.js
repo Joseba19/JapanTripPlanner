@@ -1,13 +1,20 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router'
 import { parseFilters, parseSort, writeFilters } from '../lib/filterParams.js'
 import { countActiveFilters, EMPTY_FILTERS } from '../lib/search.js'
 
-/** Filtros y orden guardados en la URL. */
+/**
+ * Filtros y orden guardados en la URL.
+ * Las funciones son estables (setSearchParams cambia de identidad con cada cambio de URL),
+ * para no repintar componentes memorizados en cada pulsación.
+ */
 export function useFilters() {
-  const [params, setParams] = useSearchParams()
+  const [params, rawSetParams] = useSearchParams()
   const filters = useMemo(() => parseFilters(params), [params])
   const sort = parseSort(params)
+  const setParamsRef = useRef(rawSetParams)
+  setParamsRef.current = rawSetParams
+  const setParams = useCallback((...args) => setParamsRef.current(...args), [])
 
   const setFilters = useCallback(
     (next) =>

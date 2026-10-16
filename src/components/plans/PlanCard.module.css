@@ -13,7 +13,8 @@
   transition:
     border-color var(--dur-fast),
     background-color var(--dur-fast),
-    transform var(--dur-fast) var(--ease-out);
+    box-shadow var(--dur) var(--ease-out),
+    transform var(--dur) var(--ease-out);
 }
 
 /* Filo de color de la ciudad, como el borde de un sello */
@@ -29,7 +30,7 @@
 }
 
 /* Con portada, el filo de la ciudad va bajo la imagen */
-.card:has([data-cover])::before {
+.card[data-cover]::before {
   display: none;
 }
 
@@ -42,11 +43,24 @@
   transform: scale(0.99);
 }
 
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+/* Hecho: el plan pasa a segundo plano */
+.card[data-status='hecho'] .title,
+.card[data-status='hecho'] .meta {
+  color: var(--text-dim);
+}
+
 .card[data-selected] {
   border-color: color-mix(in srgb, var(--city-color) 60%, transparent);
 }
 
-.card:has(.open:focus-visible) {
+.open:focus-visible::after {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -198,6 +212,16 @@
   color: var(--accent);
 }
 
+.vote[aria-pressed='true'] svg {
+  animation: beat var(--dur-slow) var(--ease-spring);
+}
+
+@keyframes beat {
+  40% {
+    transform: scale(1.35);
+  }
+}
+
 .attend {
   padding: 0 12px;
   border: 1px solid var(--line-strong);
@@ -206,7 +230,7 @@
 
 .attend:hover {
   color: var(--text);
-  border-color: rgb(235 229 214 / 0.3);
+  border-color: var(--line-hover);
 }
 
 .attend[aria-pressed='true'] {
@@ -217,6 +241,14 @@
 
 .attend[aria-pressed='true'] svg {
   color: var(--status-hecho);
+  animation: tick var(--dur) var(--ease-spring);
+}
+
+@keyframes tick {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-20deg);
+  }
 }
 
 .handle {

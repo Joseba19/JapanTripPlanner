@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react'
 import { removeCover, uploadCover } from '../../api/covers.js'
+import { scrollBehavior } from '../../lib/motion.js'
 import { CATEGORIES, CITIES, cityColor, LIMITS, OWNERS, PEOPLE, STATUSES, statusColor } from '../../lib/constants.js'
 import { defaultAttendees, emptyForm, formToPlan, planToForm, validateForm } from '../../lib/planValues.js'
 import Button from '../ui/Button.jsx'
@@ -47,7 +48,7 @@ export default function PlanForm({ plan, me, defaultCity, zones, rate, onSubmit,
       const formElement = event.currentTarget
       requestAnimationFrame(() => {
         const target = formElement.querySelector('[aria-invalid="true"], [data-invalid="true"]')
-        target?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        target?.scrollIntoView({ block: 'center', behavior: scrollBehavior() })
         target?.focus({ preventScroll: true })
       })
       return
@@ -86,6 +87,7 @@ export default function PlanForm({ plan, me, defaultCity, zones, rate, onSubmit,
             maxLength={LIMITS.title}
             placeholder="Fushimi Inari al amanecer"
             autoFocus={!plan}
+            data-autofocus={!plan || undefined}
             aria-describedby={describedBy}
             aria-invalid={invalid || undefined}
             onChange={(e) => set({ title: e.target.value })}

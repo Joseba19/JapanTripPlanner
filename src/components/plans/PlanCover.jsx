@@ -12,6 +12,7 @@ const SIZES = {
 /** Portada 16:9. Si la imagen no carga, desaparece en lugar de dejar un hueco roto. */
 export default function PlanCover({ url, variant = 'card' }) {
   const [failedUrl, setFailedUrl] = useState(null)
+  const [loadedUrl, setLoadedUrl] = useState(null)
   if (!url || failedUrl === url) return null
   const { src, srcSet } = coverSources(url, SUPABASE_URL)
   return (
@@ -26,6 +27,8 @@ export default function PlanCover({ url, variant = 'card' }) {
         srcSet={srcSet}
         src={src}
         alt=""
+        data-loaded={loadedUrl === url || undefined}
+        onLoad={() => setLoadedUrl(url)}
         onError={() => setFailedUrl(url)}
       />
     </div>
