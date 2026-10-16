@@ -1,0 +1,56 @@
+.chip {
+  --chip-color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast),
+    border-color var(--dur-fast),
+    color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.chip:hover {
+  color: var(--text);
+  border-color: rgb(235 229 214 / 0.3);
+}
+
+.chip:active {
+  transform: scale(0.96);
+}
+
+.chip[aria-pressed='true'] {
+  color: var(--text);
+  border-color: var(--chip-color);
+  background: color-mix(in srgb, var(--chip-color) 14%, var(--surface));
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip-color);
+}
+
+.kanji {
+  font-size: 0.95rem;
+  color: var(--chip-color);
+}
+
+.chip:not([aria-pressed='true']) .kanji {
+  color: var(--text-faint);
+}
+
+.count {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,40 @@
+.sort {
+  position: relative;
+  display: inline-flex;
+}
+
+.sort::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -5px;
+  border-right: 1.5px solid var(--text-dim);
+  border-bottom: 1.5px solid var(--text-dim);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.select {
+  appearance: none;
+  min-height: 36px;
+  padding: 0 32px 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.select:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+
+.select option {
+  background: var(--bg-raised);
+  color: var(--text);
+}

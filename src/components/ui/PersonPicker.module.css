@@ -1,0 +1,43 @@
+.group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px 0 7px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.9375rem;
+  transition:
+    border-color var(--dur-fast),
+    background-color var(--dur-fast),
+    color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.person:active {
+  transform: scale(0.96);
+}
+
+.person:hover {
+  color: var(--text);
+}
+
+.person[aria-pressed='true'],
+.person[aria-checked='true'] {
+  color: var(--text);
+  border-color: var(--person-color);
+  background: color-mix(in srgb, var(--person-color) 14%, var(--surface));
+}
+
+.person:not([aria-pressed='true'], [aria-checked='true']) > span:first-child {
+  filter: grayscale(1);
+  opacity: 0.55;
+}

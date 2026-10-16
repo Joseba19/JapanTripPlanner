@@ -1,0 +1,47 @@
+import { useCallback, useMemo } from 'react'
+import { useSearchParams } from 'react-router'
+import { parseFilters, parseSort, writeFilters } from '../lib/filterParams.js'
+import { countActiveFilters, EMPTY_FILTERS } from '../lib/search.js'
+
+/** Filtros y orden guardados en la URL. */
+export function useFilters() {
+  const [params, setParams] = useSearchParams()
+  const filters = useMemo(() => parseFilters(params), [params])
+  const sort = parseSort(params)
+
+  const setFilters = useCallback(
+    (next) =>
+      setParams(
+        (prev) => {
+          const updated = new URLSearchParams(prev)
+          const current = parseFilters(prev)
+          writeFilters(updated, typeof next === 'function' ? next(current) : { ...current, ...next })
+          return updated
+        },
+        { replace: true },
+      ),
+    [setParams],
+  )
+
+  const setSort = useCallback(
+    (value) =>
+      setParams(
+        (prev) => {
+          const updated = new URLSearchParams(prev)
+          if (value === 'manual') updated.delete('sort')
+          else updated.set('sort', value)
+          return updated
+        },
+        { replace: true },
+      ),
+    [setParams],
+  )
+
+  /** Quita los filtros del panel; mantiene búsqueda y ciudad. */
+  const clearFilters = useCallback(
+    () => setFilters((current) => ({ ...EMPTY_FILTERS, q: current.q, city: current.city })),
+    [setFilters],
+  )
+
+  return { filters, setFilters, clearFilters, sort, setSort, activeCount: countActiveFilters(filters) }
+}

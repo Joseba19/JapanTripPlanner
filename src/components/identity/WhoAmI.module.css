@@ -1,0 +1,83 @@
+.screen {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 32px var(--gutter);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(100%, 420px);
+  text-align: center;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 8px;
+  border-radius: 50%;
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  font-size: 2.5rem;
+}
+
+.title {
+  font-size: 2rem;
+}
+
+.text {
+  color: var(--text-dim);
+  font-size: 0.9375rem;
+}
+
+.people {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  width: 100%;
+  margin-top: 16px;
+}
+
+.person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 12px;
+  border-radius: var(--radius-l);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-size: 1.0625rem;
+  font-weight: 500;
+  transition:
+    border-color var(--dur-fast),
+    background-color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.person:hover {
+  border-color: var(--person-color);
+  background: color-mix(in srgb, var(--person-color) 10%, var(--surface));
+}
+
+.person:active {
+  transform: scale(0.97);
+}
+
+.initial {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 2px solid var(--person-color);
+  color: var(--person-color);
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+}

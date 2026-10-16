@@ -1,0 +1,38 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 8px 0 12px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 0.8125rem;
+  transition: background-color var(--dur-fast);
+}
+
+.chip:hover {
+  background: rgb(255 106 77 / 0.2);
+}
+
+.chip svg {
+  color: var(--accent);
+}
+
+.clear {
+  min-height: 32px;
+  padding: 0 8px;
+  color: var(--text-dim);
+  font-size: 0.8125rem;
+}
+
+.clear:hover {
+  color: var(--text);
+}

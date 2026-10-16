@@ -1,0 +1,36 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.exact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.or {
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}
+
+.part {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+}
+
+.part input {
+  width: 72px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}

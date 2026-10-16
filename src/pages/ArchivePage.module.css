@@ -1,0 +1,84 @@
+.page {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: 24px var(--gutter) calc(var(--nav-h) + var(--safe-b) + 32px);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: 1.75rem;
+}
+
+.intro {
+  color: var(--text-dim);
+  font-size: 0.9375rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px 12px 18px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--city-color);
+  opacity: 0.5;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.planTitle {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}
+
+.city {
+  color: var(--text-dim);
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.confirmText {
+  color: var(--text-dim);
+}

@@ -1,0 +1,39 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.amount {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.amount input {
+  padding-left: 32px;
+  font-variant-numeric: tabular-nums;
+}
+
+.symbol {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+.preview {
+  margin-left: auto;
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

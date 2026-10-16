@@ -1,0 +1,44 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.row {
+  display: grid;
+  gap: 22px;
+}
+
+@media (min-width: 560px) {
+  .row {
+    grid-template-columns: 2fr 3fr;
+    gap: 14px;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.actions {
+  position: sticky;
+  bottom: -20px;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 0 calc(-1 * var(--gutter)) -20px;
+  padding: 12px var(--gutter);
+  background: var(--bg-raised);
+  border-top: 1px solid var(--line);
+}
+
+.submitError {
+  flex-basis: 100%;
+  color: var(--danger);
+  font-size: 0.875rem;
+}

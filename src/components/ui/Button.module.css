@@ -1,0 +1,73 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-fast),
+    border-color var(--dur-fast),
+    color var(--dur-fast),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.button:disabled {
+  opacity: 0.5;
+}
+
+.md {
+  min-height: 44px;
+  padding: 0 18px;
+}
+
+.sm {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 0.875rem;
+}
+
+.primary {
+  background: var(--accent-fill);
+  color: var(--on-accent);
+}
+
+.primary:hover:not(:disabled) {
+  background: #e64d33;
+}
+
+.secondary {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+}
+
+.secondary:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.ghost {
+  color: var(--text-dim);
+}
+
+.ghost:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.danger {
+  color: var(--danger);
+  border: 1px solid rgb(255 122 107 / 0.35);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
+.button[aria-busy='true'] {
+  cursor: progress;
+}

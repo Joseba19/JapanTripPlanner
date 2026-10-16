@@ -1,0 +1,63 @@
+/* Design tokens · tema oscuro "sumi" (el tema claro "washi" llega en la fase 3) */
+:root {
+  color-scheme: dark;
+
+  --bg: #0f1014;
+  --bg-sunken: #0b0c0f;
+  --bg-raised: #15161c;
+  --surface: #1a1b22;
+  --surface-hover: #21222a;
+  --line: rgb(235 229 214 / 0.09);
+  --line-strong: rgb(235 229 214 / 0.18);
+
+  --text: #ebe5d6;
+  --text-dim: #a8a295;
+  --text-faint: #77736b;
+
+  --accent: #ff6a4d;        /* bermellón torii: texto y bordes */
+  --accent-fill: #d9432a;   /* bermellón para fondos con texto claro */
+  --accent-soft: rgb(255 106 77 / 0.12);
+  --on-accent: #fff7ec;
+  --gold: #d6b25e;
+  --danger: #ff7a6b;
+  --danger-soft: rgb(255 122 107 / 0.12);
+
+  --city-tokio: #ff6a4d;
+  --city-kioto: #d6b25e;
+  --city-osaka: #5cc2b4;
+  --city-kawaguchiko: #7aa7e8;
+
+  --person-joseba: #f2a65a;
+  --person-filip: #7cc4a4;
+  --person-gahona: #a3abff;
+  --person-ander: #ee93bb;
+  --person-todos: #ebe5d6;
+
+  --status-idea: #a8a295;
+  --status-confirmado: #ff6a4d;
+  --status-hecho: #7cc4a4;
+
+  --font-serif: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', 'Noto Serif JP', Georgia, serif;
+  --font-sans: 'Zen Kaku Gothic New', system-ui, -apple-system, 'Segoe UI', Roboto, 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+
+  --radius-s: 8px;
+  --radius: 14px;
+  --radius-l: 22px;
+  --shadow: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 10px 30px -14px rgb(0 0 0 / 0.7);
+
+  --header-h: 60px;
+  --nav-h: 64px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --gutter: 16px;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 140ms;
+  --dur: 240ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-fast: 0ms;
+    --dur: 0ms;
+  }
+}
