@@ -8,7 +8,7 @@ Web personal (no comercial) para que 4 amigos (Joseba, Filip, Gahona, Ander) pla
 - **Restricciones:** Supabase en plan gratuito (se pausa tras 7 días sin actividad) y Vercel Hobby.
 - **Punto de partida:** el repo está vacío (solo `.git`), así que no hay código que reutilizar.
 
-> Estado (2026-10-16): plan aprobado. Fase 0 y Fase 1 escritas, pendientes de instalar Node, ejecutar el SQL en Supabase y probar.
+> Estado (2026-10-16): Fases 0, 1 y 1.5 (portadas) desplegadas en Vercel. Siguiente: Fase 2.
 
 ---
 
@@ -90,7 +90,8 @@ La clave `anon` de Supabase va dentro del bundle, así que cualquiera con la URL
 index.html · vite.config.js · package.json · vercel.json · .env.example · public/robots.txt
 api/keepalive.js                       # función serverless que llama el cron de Vercel
 supabase/migrations/001_schema.sql     # tablas, checks, RLS, triggers
-supabase/migrations/002_collab.sql     # RPC, plan_events, settings, realtime
+supabase/migrations/002_covers.sql     # bucket de portadas + políticas de Storage
+supabase/migrations/003_collab.sql     # RPC, plan_events, heartbeat, realtime
 supabase/seed.sql                      # planes de ejemplo
 src/main.jsx · src/App.jsx
 src/lib/       supabase.js constants.js format.js search.js ordering.js storage.js
@@ -129,8 +130,34 @@ src/**/*.test.js                       # Vitest junto a cada módulo de lib
   - Manual: crear, editar, archivar, deshacer, restaurar y borrar definitivamente; comprobar que un `delete` sobre un plan no archivado falla (con una prueba en el SQL editor).
   - En un móvil real: `npm run dev -- --host` y abrir `http://<IP-del-PC>:5173` en el móvil conectado a la misma wifi (permitir Node en el firewall de Windows). Además, abrir la *preview* de Vercel por HTTPS.
 
+### Fase 1.5 — Portada del plan (adelantada desde la Fase 4)
+Decisiones: **subir foto o pegar URL**, **banda 16:9 en la parte superior de la tarjeta** y **recorte automático** por el centro (`object-fit: cover`).
+
+- **Almacenamiento:** un bucket público `covers` en Supabase Storage (1 GB gratis), creado en `002_covers.sql`. El propio Supabase limita cada archivo a **1 MB** y a los tipos `image/webp` y `image/jpeg`. Las políticas RLS permiten subir, leer y borrar solo dentro de `covers`; es tan abierto como el resto de la app.
+- **Compresión en el navegador**, antes de subir nada:
+  - `createImageBitmap` respeta la orientación EXIF de las fotos del móvil y un `<canvas>` las redimensiona.
+  - Se generan **dos versiones** en WebP: la grande para el detalle (máximo 1600 px, unos 150–300 KB) y la pequeña para las tarjetas (800 px, unos 50 KB). Si el navegador no sabe crear WebP, se usan JPEG.
+  - Las tarjetas usan `srcset`, así que en el móvil solo se descarga la pequeña: unos 2 MB para 40 planes en vez de 10 MB. Importa en Japón con datos móviles. (Supabase solo transforma imágenes en el plan de pago, por eso las generamos nosotros.)
+  - Las fotos del iPhone se eligen desde la galería y iOS las convierte de HEIC a JPEG solo. Si el navegador no puede leer el formato, se muestra un error claro.
+- **Subida al guardar**, no al elegir la foto:
+  - La vista previa usa la imagen local, así que si cancelas el formulario no queda nada huérfano en Storage.
+  - Si falla el guardado del plan, se borra lo que se acaba de subir.
+  - Al sustituir o quitar una portada, o al borrar un plan definitivamente, se borran sus dos archivos.
+- **URL pegada:** solo `https://`, con vista previa y un aviso si no carga. Se guarda en la columna `image_url`, que ya existe, así que no hay que cambiar la tabla `plans`.
+- **Sin dependencia nueva:** la subida y el borrado llaman a la API REST de Storage con `fetch`. La librería `storage-js` pesaba unos 110 kB.
+- **Vista:**
+  - En la tarjeta, banda 16:9 arriba con `loading="lazy"`, `decoding="async"` y `aspect-ratio` fijo para que la página no salte al cargar. Si la imagen falla, la banda desaparece.
+  - En el detalle, la portada grande arriba.
+- **Archivos:**
+  - Nuevos: `supabase/migrations/002_covers.sql`, `src/lib/covers.js` y su test (tamaños, rutas y URLs, `srcset`), `src/lib/imageCompress.js`, `src/api/covers.js`, `src/components/ui/CoverPicker.jsx` y su `.module.css`, `src/components/plans/PlanCover.jsx` y su `.module.css`.
+  - Modificados: `PlanForm`, `PlanCard`, `PlanDetail`, `planValues.js` (campo y validación), `PlansProvider.destroy` (borrar los archivos) y `lib/supabase.js` (exportar la URL y la clave).
+- **Prueba:**
+  - Vitest para `covers.js` y la validación de la URL.
+  - Con `curl`, comprobar que la clave pública puede subir y borrar en `covers`, y que un PNG o un archivo de más de 1 MB se rechazan.
+  - Manual: subir desde la galería del móvil (iPhone y Android) y desde el PC; pegar una URL buena y otra rota; sustituir y quitar la portada, y comprobar en *Storage* que no quedan huérfanos; en DevTools → Network con perfil móvil, ver que las tarjetas cargan la versión `-sm`.
+
 ### Fase 2 — Colaboración y keep-alive
-- `002_collab.sql`: RPC `toggle_attendee`/`toggle_vote`, `plan_events` con trigger, `heartbeat`, y la tabla `plans` añadida a la publicación de Realtime.
+- `003_collab.sql`: RPC `toggle_attendee`/`toggle_vote`, `plan_events` con trigger, `heartbeat`, y la tabla `plans` añadida a la publicación de Realtime.
 - `useRealtimePlans` (suscripción a `postgres_changes`, fusión con el estado y reconexión al volver a la pestaña).
 - `lib/ordering.js` (fractional indexing con la librería `fractional-indexing`) y `SortableList` con dnd-kit para el orden manual.
 - Botones "me apunto" y "me interesa", el historial en `PlanDetail` y el indicador "editado por X".
@@ -169,7 +196,7 @@ src/**/*.test.js                       # Vitest junto a cada módulo de lib
 
 ### Fase 4 — PWA sin conexión, imágenes y pulido
 - `vite-plugin-pwa`: manifest (icono 旅, `theme_color` sumi), *service worker* que precachea la app y una instantánea de los planes en IndexedDB/localStorage para consultarlos **sin conexión en modo solo lectura**. Sin conexión aparece una insignia "Sin conexión" y los botones de escritura se desactivan.
-- Imagen por URL en el formulario, con vista previa y un fallback ilustrado si falla la carga.
+- (La imagen de portada se adelantó a la Fase 1.5.)
 - Detalles finales: atajos de teclado en escritorio, enlaces "Abrir en Maps", contador de planes y suma de duración y coste estimado de lo filtrado.
 - **Prueba:**
   - Instalar la app en la pantalla de inicio desde la URL de Vercel (Android Chrome e iOS Safari → "Añadir a inicio").

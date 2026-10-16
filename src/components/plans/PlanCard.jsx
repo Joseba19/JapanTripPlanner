@@ -4,6 +4,7 @@ import Avatars from '../ui/Avatars.jsx'
 import Icon from '../ui/Icon.jsx'
 import StatusBadge from '../ui/StatusBadge.jsx'
 import styles from './PlanCard.module.css'
+import PlanCover from './PlanCover.jsx'
 
 export default function PlanCard({ plan, rate, selected, onOpen }) {
   const city = CITY_BY_ID[plan.city]
@@ -13,6 +14,7 @@ export default function PlanCard({ plan, rate, selected, onOpen }) {
 
   return (
     <article className={styles.card} style={{ '--city-color': cityColor(plan.city) }} data-selected={selected || undefined}>
+      <PlanCover url={plan.image_url} />
       <div className={styles.top}>
         <span className={styles.place}>
           <span className={`${styles.cityKanji} kanji`} aria-hidden="true">{city?.kanji}</span>

@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from 'react'
+import { removeCover } from '../api/covers.js'
 import * as plansApi from '../api/plans.js'
 import { fetchSettings, updateRate } from '../api/settings.js'
 import { useToast } from '../components/ui/Toast.jsx'
@@ -145,9 +146,11 @@ export function PlansProvider({ children }) {
 
   const destroy = useCallback(
     async (id) => {
+      const plan = plansRef.current.find((p) => p.id === id)
       try {
         await plansApi.deletePlan(id)
         dispatch({ type: 'remove', id })
+        if (plan?.image_url) removeCover(plan.image_url)
         return true
       } catch (error) {
         toast.error(`No se pudo borrar: ${describeError(error)}`)

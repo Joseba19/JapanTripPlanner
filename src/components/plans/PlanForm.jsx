@@ -1,8 +1,10 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
+import { removeCover, uploadCover } from '../../api/covers.js'
 import { CATEGORIES, CITIES, cityColor, LIMITS, OWNERS, PEOPLE, STATUSES, statusColor } from '../../lib/constants.js'
 import { defaultAttendees, emptyForm, formToPlan, planToForm, validateForm } from '../../lib/planValues.js'
 import Button from '../ui/Button.jsx'
 import Chip from '../ui/Chip.jsx'
+import CoverPicker from '../ui/CoverPicker.jsx'
 import DurationPicker from '../ui/DurationPicker.jsx'
 import Field from '../ui/Field.jsx'
 import PersonPicker from '../ui/PersonPicker.jsx'
@@ -17,7 +19,11 @@ export default function PlanForm({ plan, me, defaultCity, zones, rate, onSubmit,
   const [saving, setSaving] = useState(false)
   const [submitError, setSubmitError] = useState(null)
   const [attendeesTouched, setAttendeesTouched] = useState(Boolean(plan))
+  // Foto elegida y comprimida, pendiente de subir al guardar
+  const [cover, setCover] = useState(null)
   const zonesId = useId()
+
+  useEffect(() => () => cover && URL.revokeObjectURL(cover.previewUrl), [cover])
 
   const set = (patch) => {
     setForm((current) => ({ ...current, ...patch }))
@@ -33,7 +39,8 @@ export default function PlanForm({ plan, me, defaultCity, zones, rate, onSubmit,
 
   const submit = async (event) => {
     event.preventDefault()
-    const found = validateForm(form)
+    // Con una foto pendiente, el enlace escrito no cuenta: se sustituye por el de la foto subida
+    const found = validateForm(cover ? { ...form, image_url: '' } : form)
     setErrors(found)
     if (Object.keys(found).length) {
       // Lleva el foco al primer campo con error
@@ -47,12 +54,25 @@ export default function PlanForm({ plan, me, defaultCity, zones, rate, onSubmit,
     }
     setSaving(true)
     setSubmitError(null)
+    let values = formToPlan(form)
+    let uploadedUrl = null
     try {
-      await onSubmit(formToPlan(form))
+      if (cover) {
+        setSaving('upload')
+        uploadedUrl = await uploadCover(cover)
+        values = { ...values, image_url: uploadedUrl }
+        setSaving(true)
+      }
+      await onSubmit(values)
     } catch (error) {
+      // Si el plan no se guarda, la foto recién subida sobra
+      if (uploadedUrl) removeCover(uploadedUrl)
       setSubmitError(error.message)
       setSaving(false)
+      return
     }
+    // Portada sustituida o quitada: se borra la anterior (si era una subida nuestra)
+    if (plan?.image_url && plan.image_url !== values.image_url) removeCover(plan.image_url)
   }
 
   return (
@@ -144,6 +164,24 @@ export default function PlanForm({ plan, me, defaultCity, zones, rate, onSubmit,
         )}
       </Field>
 
+      <Field label="Portada" optional error={errors.image_url}>
+        {({ id, describedBy, invalid }) => (
+          <CoverPicker
+            id={id}
+            describedBy={describedBy}
+            invalid={invalid}
+            imageUrl={form.image_url}
+            pending={cover}
+            onPickFile={(result) => setCover({ ...result, previewUrl: URL.createObjectURL(result.large) })}
+            onUrlChange={(image_url) => set({ image_url })}
+            onRemove={() => {
+              setCover(null)
+              set({ image_url: '' })
+            }}
+          />
+        )}
+      </Field>
+
       <Field label="Precio" optional error={errors.price_amount}>
         {({ id, describedBy, invalid }) => (
           <PriceInput
@@ -217,11 +255,11 @@ export default function PlanForm({ plan, me, defaultCity, zones, rate, onSubmit,
             {submitError}
           </p>
         )}
-        <Button variant="ghost" onClick={onCancel} disabled={saving}>
+        <Button variant="ghost" onClick={onCancel} disabled={Boolean(saving)}>
           Cancelar
         </Button>
-        <Button variant="primary" type="submit" loading={saving} icon="check">
-          {plan ? 'Guardar cambios' : 'Crear plan'}
+        <Button variant="primary" type="submit" loading={Boolean(saving)} icon="check">
+          {saving === 'upload' ? 'Subiendo foto…' : plan ? 'Guardar cambios' : 'Crear plan'}
         </Button>
       </div>
     </form>

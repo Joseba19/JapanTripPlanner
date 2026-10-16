@@ -40,6 +40,13 @@ describe('formulario', () => {
   it('detecta un precio mal escrito', () => {
     expect(validateForm({ ...valid, price_amount: '12€abc' }).price_amount).toBeTruthy()
   })
+  it('la imagen tiene que ser https', () => {
+    expect(validateForm({ ...valid, image_url: 'https://example.com/foto.jpg' })).toEqual({})
+    expect(validateForm({ ...valid, image_url: 'http://example.com/foto.jpg' }).image_url).toBeTruthy()
+    expect(validateForm({ ...valid, image_url: 'foto.jpg' }).image_url).toBeTruthy()
+    expect(validateForm({ ...valid, image_url: 'https://a b.com' }).image_url).toBeTruthy()
+    expect(formToPlan({ ...valid, image_url: '   ' }).image_url).toBeNull()
+  })
   it('formToPlan limpia textos y ordena a los apuntados', () => {
     const plan = formToPlan({ ...valid, zone: '  ', price_amount: '3.800', attendees: ['Ander', 'Joseba'] })
     expect(plan.title).toBe('Fushimi Inari')

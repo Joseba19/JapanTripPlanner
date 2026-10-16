@@ -42,6 +42,7 @@ export function emptyForm(me, { city = '' } = {}) {
     owner,
     attendees: defaultAttendees(owner),
     status: 'idea',
+    image_url: '',
   }
 }
 
@@ -60,6 +61,7 @@ export function planToForm(plan) {
     owner: plan.owner ?? EVERYONE,
     attendees: plan.attendees ?? [],
     status: plan.status ?? 'idea',
+    image_url: plan.image_url ?? '',
   }
 }
 
@@ -85,6 +87,7 @@ export function formToPlan(form) {
     owner: form.owner,
     attendees: PEOPLE.filter((p) => form.attendees.includes(p)),
     status: form.status,
+    image_url: orNull(form.image_url),
   }
 }
 
@@ -105,6 +108,10 @@ export function validateForm(form) {
   const amount = parseAmount(form.price_amount, form.price_currency)
   if (Number.isNaN(amount)) errors.price_amount = 'Escribe solo números, por ejemplo 3.800 o 18,50.'
   else if (amount != null && amount >= 1e8) errors.price_amount = 'Ese precio parece demasiado alto.'
+
+  const image = form.image_url.trim()
+  if (image && !/^https:\/\/\S+$/i.test(image)) errors.image_url = 'Tiene que ser un enlace que empiece por https://'
+  else if (image.length > LIMITS.imageUrl) errors.image_url = 'Ese enlace es demasiado largo.'
 
   const d = form.duration_min
   if (d != null && (!Number.isInteger(d) || d < 0 || d > 1440)) errors.duration_min = 'Entre 0 y 24 horas.'

@@ -28,6 +28,11 @@
   background: var(--city-color);
 }
 
+/* Con portada, el filo de la ciudad va bajo la imagen */
+.card:has([data-cover])::before {
+  display: none;
+}
+
 .card:hover {
   background: var(--surface-hover);
   border-color: var(--line-strong);

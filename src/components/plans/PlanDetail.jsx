@@ -5,6 +5,7 @@ import Button from '../ui/Button.jsx'
 import Icon from '../ui/Icon.jsx'
 import Segmented from '../ui/Segmented.jsx'
 import styles from './PlanDetail.module.css'
+import PlanCover from './PlanCover.jsx'
 
 export default function PlanDetail({ plan, rate, onEdit, onArchive, onRestore, onStatus }) {
   const city = CITY_BY_ID[plan.city]
@@ -16,6 +17,8 @@ export default function PlanDetail({ plan, rate, onEdit, onArchive, onRestore, o
 
   return (
     <article className={styles.detail} style={{ '--city-color': cityColor(plan.city) }}>
+      <PlanCover url={plan.image_url} variant="hero" />
+
       {archived && (
         <div className={styles.archived} role="note">
           <span>Archivado por {plan.archived_by ?? 'alguien'} {relativeTime(plan.archived_at)}</span>

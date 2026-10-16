@@ -68,7 +68,7 @@ export const SORTS = [
 
 export const DEFAULT_EUR_JPY = 165
 
-export const LIMITS = { title: 120, zone: 60, location: 500, notes: 2000 }
+export const LIMITS = { title: 120, zone: 60, location: 500, notes: 2000, imageUrl: 1000 }
 
 const byId = (list) => Object.fromEntries(list.map((item) => [item.id, item]))
 

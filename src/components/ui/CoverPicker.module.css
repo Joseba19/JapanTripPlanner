@@ -1,0 +1,133 @@
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  aspect-ratio: 16 / 7;
+  border-radius: var(--radius);
+  border: 1.5px dashed var(--line-strong);
+  background: var(--bg-sunken);
+  color: var(--text-dim);
+  transition:
+    border-color var(--dur-fast),
+    background-color var(--dur-fast),
+    color var(--dur-fast);
+}
+
+.drop:hover,
+.drop[data-dragging] {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.drop[data-dragging] {
+  background: var(--accent-soft);
+}
+
+.drop:disabled {
+  cursor: progress;
+}
+
+.dropIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  color: var(--accent);
+}
+
+.dropTitle {
+  font-weight: 500;
+}
+
+.dropHint {
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}
+
+.preview {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--bg-sunken);
+}
+
+.preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 28px 10px 10px;
+  background: linear-gradient(to top, rgb(8 8 12 / 0.8), transparent);
+}
+
+.remove {
+  background: rgb(15 16 20 / 0.6);
+  color: var(--text);
+}
+
+.badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgb(15 16 20 / 0.75);
+  color: var(--gold);
+  font-size: 0.75rem;
+}
+
+.broken {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 100%;
+  padding: 16px 16px 64px;
+  text-align: center;
+  color: var(--danger);
+  font-size: 0.875rem;
+}
+
+.broken :global(.kanji) {
+  font-size: 1.75rem;
+}
+
+.error {
+  color: var(--danger);
+  font-size: 0.8125rem;
+}
+
+.url {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.urlLabel {
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}
