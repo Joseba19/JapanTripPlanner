@@ -29,9 +29,11 @@
   cursor: pointer;
 }
 
-.select:hover {
-  color: var(--text);
-  border-color: var(--line-strong);
+@media (hover: hover) and (pointer: fine) {
+  .select:hover {
+    color: var(--text);
+    border-color: var(--line-strong);
+  }
 }
 
 .select option {

@@ -18,17 +18,24 @@
   }
 }
 
-/* Entrada escalonada al aparecer (cargar o filtrar). Solo las primeras: el resto queda fuera de pantalla
-   y animar 100+ tarjetas a la vez dispara el recálculo de estilos en móviles modestos. */
-.list > li[data-stagger] > article {
-  animation: card-in var(--dur-slow) var(--ease-out) backwards;
-  animation-delay: calc(var(--i, 0) * 40ms);
+/* Entrada escalonada al abrir la app (PlanList.jsx quita data-entering al terminar). Solo las primeras:
+   el resto queda fuera de pantalla y animar 100+ tarjetas a la vez dispara el recálculo de estilos
+   en móviles modestos. Es decorativa: las tarjetas se pueden tocar mientras entran. */
+.list[data-entering] > li[data-stagger] > article {
+  animation: card-in 300ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 50ms);
 }
 
 @keyframes card-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
+  }
+}
+
+@keyframes card-fade {
+  from {
+    opacity: 0;
   }
 }
 
@@ -48,7 +55,7 @@
   inset: 0;
   background: linear-gradient(100deg, transparent 20%, var(--accent-soft) 50%, transparent 80%);
   transform: translateX(-100%);
-  animation: shimmer 1.6s ease-in-out infinite;
+  animation: shimmer 1.2s linear infinite; /* movimiento continuo: lineal */
   animation-delay: inherit;
 }
 
@@ -61,6 +68,12 @@
 @media (prefers-reduced-motion: reduce) {
   .skeleton::after {
     display: none;
+  }
+
+  /* Todas a la vez y sin subir: solo un fundido */
+  .list[data-entering] > li[data-stagger] > article {
+    animation-name: card-fade;
+    animation-delay: 0ms;
   }
 }
 
@@ -127,6 +140,15 @@
   from {
     opacity: 0;
     transform: translateY(4px);
+  }
+}
+
+/* Movimiento reducido: el ensō aparece ya dibujado */
+@media (prefers-reduced-motion: reduce) {
+  .ensoBack,
+  .ensoInk,
+  .enso :global(.kanji) {
+    animation: none;
   }
 }
 

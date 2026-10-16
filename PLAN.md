@@ -237,6 +237,19 @@ Decisiones: **subir foto o pegar URL**, **banda 16:9 en la parte superior de la 
 
 ---
 
+### Pulido del movimiento (añadido tras el mapa)
+Revisión de todas las animaciones con los criterios de Emil Kowalski (skills `animate` y `emil-design-eng` en `.claude/skills/`): primero se decide si algo debe animarse según lo a menudo que se ve y para qué sirve, y después con qué curva y duración.
+
+**Notas de implementación:**
+- **Tokens** (`tokens.css`): curvas fuertes `--ease-out`, `--ease-in-out` y `--ease-drawer` (hoja tipo iOS). Se quitan `ease-in` en las salidas y el falso muelle `--ease-spring`. Duraciones: `--dur-fast` 160 ms (pulsar, hover, color), `--dur` 220 ms, `--dur-sheet` 400 ms (la hoja sale en 260 ms) y `--dur-slow` 420 ms solo para momentos poco frecuentes (sello, ensō, pantalla «¿Quién eres?»).
+- **Hoja inferior** (`Sheet`): sube desde `translateY(100%)` y baja por el mismo camino, más deprisa. Con transiciones en vez de keyframes: si se reabre mientras sale, da la vuelta desde donde está. El fondo oscuro es un `::before` del `<dialog>` para poder animarlo igual. Arrastre: `transform` directo en el panel (sin variable CSS que recalcule todo el contenido), resistencia creciente hacia arriba, se ignora un segundo dedo y basta un golpe rápido (0,11 px/ms) para cerrarla. En escritorio y en las confirmaciones, el diálogo crece desde el centro (`scale(0.96)`).
+- **Avisos** (`Toast`): entran desde abajo con `@starting-style` y salen por el mismo sitio. La cuenta atrás (y la pincelada) se pausa con la pestaña oculta o con el ratón encima.
+- **Lista:** el escalonado (50 ms entre tarjetas, solo las 10 primeras) ocurre solo la primera vez que se ve la lista en la sesión. Al filtrar o cambiar de vista, cosa que pasa decenas de veces al día, las tarjetas aparecen sin más. El ❤ y el ✓ laten solo al pulsarlos (`popIcon`, con WAAPI); antes latían al cargar en todas las tarjetas votadas.
+- **Teclado:** lo que se abre en el panel de escritorio con el teclado (N, Enter sobre una tarjeta) aparece sin animación.
+- **Hover** solo con ratón (`@media (hover: hover) and (pointer: fine)`): en el móvil el hover se quedaba pegado después de tocar. Presión `scale(0.95–0.97)` en todo lo que se pulsa (pestañas de ciudad, segmentos, filtros, barra inferior).
+- **Mapa:** la chincheta crece desde su punta, que no se mueve del sitio.
+- **Movimiento reducido:** menos y más suave, no cero. Cada componente quita sus desplazamientos y escalas y conserva los fundidos; la pincelada del aviso «Deshacer» sigue, porque informa del tiempo.
+
 ## 5. Verificación global (antes del viaje)
 1. `npm run test` (Vitest) en verde y `npm run build` sin avisos.
 2. Recorrido completo en el móvil de cada uno de los 4 (iOS y Android si los hay): elegir identidad, crear, apuntarse, votar, reordenar, archivar, restaurar y borrar.

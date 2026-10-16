@@ -35,10 +35,25 @@
   border: 1px solid var(--line-strong);
   background: var(--surface);
   color: var(--text-dim);
+  transition:
+    color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
 }
 
 .filterButton:active {
   transform: scale(0.95);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .filterButton:hover {
+    color: var(--text);
+    border-color: var(--line-hover);
+  }
+
+  .noteLink:hover {
+    color: var(--text);
+  }
 }
 
 .filterCount {
@@ -104,9 +119,6 @@
   text-underline-offset: 3px;
 }
 
-.noteLink:hover {
-  color: var(--text);
-}
 
 .fab {
   position: fixed;
@@ -125,7 +137,7 @@
 }
 
 .fab:active {
-  transform: scale(0.92);
+  transform: scale(0.95);
 }
 
 /* Sin conexión: se ve apagado para que se entienda que ahora no se puede crear */
@@ -239,21 +251,41 @@
     color: var(--text-dim);
   }
 
-  .panelClose:hover {
-    color: var(--text);
-    background: var(--surface);
+  @media (hover: hover) and (pointer: fine) {
+    .panelClose:hover {
+      color: var(--text);
+      background: var(--surface);
+    }
   }
 
+  /* Cambiar de plan en el panel pasa a menudo: un fundido corto con un desplazamiento mínimo,
+     para que el contenido no "salte". Si se ha abierto con el teclado (N), sin animación. */
   .panelBody {
     flex: 1;
     padding: 4px var(--gutter) 20px;
-    animation: panel-in var(--dur) var(--ease-out);
+    animation: panel-in 180ms var(--ease-out);
+  }
+
+  .panelBody[data-instant] {
+    animation: none;
   }
 
   @keyframes panel-in {
     from {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(4px);
     }
+  }
+
+  @keyframes panel-fade {
+    from {
+      opacity: 0;
+    }
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  .panelBody:not([data-instant]) {
+    animation-name: panel-fade;
   }
 }

@@ -55,9 +55,20 @@
   color: var(--bg);
 }
 
-.pin:hover .pinHead,
+/* La chincheta crece desde su punta, que es la que marca el sitio: el translateY la mantiene quieta
+   (la punta está a 24 px del centro, así que crecer un 12 % la bajaría ~3 px) */
 .pin:focus-visible .pinHead {
-  transform: rotate(-45deg) scale(1.12);
+  transform: translateY(-3px) rotate(-45deg) scale(1.12);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pin:hover .pinHead {
+    transform: translateY(-3px) rotate(-45deg) scale(1.12);
+  }
+
+  .map :global(.maplibregl-ctrl-group button:not(:disabled):hover) {
+    background: var(--surface-hover);
+  }
 }
 
 .pin:focus-visible {
@@ -71,7 +82,7 @@
 }
 
 .pin[data-selected] .pinHead {
-  transform: rotate(-45deg) scale(1.22);
+  transform: translateY(-5px) rotate(-45deg) scale(1.22);
 }
 
 /* ───── Controles (zoom y créditos), con los colores de la app ───── */
@@ -90,10 +101,6 @@
 
 .map :global(.maplibregl-ctrl-group button + button) {
   border-top: 1px solid var(--line);
-}
-
-.map :global(.maplibregl-ctrl-group button:not(:disabled):hover) {
-  background: var(--surface-hover);
 }
 
 /* Los iconos de MapLibre son negros: en el tema oscuro se aclaran */

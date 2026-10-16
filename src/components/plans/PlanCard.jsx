@@ -1,7 +1,7 @@
 import { memo } from 'react'
 import { CATEGORY_BY_ID, CITY_BY_ID, cityColor } from '../../lib/constants.js'
 import { formatDuration, formatPrice } from '../../lib/format.js'
-import { haptic } from '../../lib/motion.js'
+import { haptic, popIcon } from '../../lib/motion.js'
 import Avatars from '../ui/Avatars.jsx'
 import Icon from '../ui/Icon.jsx'
 import Stamp from '../ui/Stamp.jsx'
@@ -79,8 +79,9 @@ function PlanCard({ plan, rate, me, selected, readOnly, onOpen, onToggleAttend, 
             aria-pressed={voted}
             aria-label={voted ? 'Quitar "me interesa"' : 'Me interesa'}
             disabled={readOnly}
-            onClick={() => {
+            onClick={(event) => {
               haptic()
+              if (!voted) popIcon(event.currentTarget)
               onToggleVote(plan.id)
             }}
           >
@@ -92,8 +93,9 @@ function PlanCard({ plan, rate, me, selected, readOnly, onOpen, onToggleAttend, 
             className={styles.attend}
             aria-pressed={going}
             disabled={readOnly}
-            onClick={() => {
+            onClick={(event) => {
               haptic()
+              if (!going) popIcon(event.currentTarget)
               onToggleAttend(plan.id)
             }}
           >

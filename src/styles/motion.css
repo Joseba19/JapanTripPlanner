@@ -1,24 +1,20 @@
 /*
- * Movimiento reducido: si el sistema lo pide, las animaciones y transiciones se quedan en nada
- * (los cambios de estado siguen siendo visibles, sin desplazamientos ni rebotes).
- * Los componentes que necesitan saberlo en JS usan lib/motion.js.
- * Regla general de la app: solo se animan transform y opacity (baratas en móviles de gama media).
+ * Reglas de movimiento de la app (ver tokens.css para curvas y duraciones):
+ * - Solo se animan transform y opacity (baratas en móviles de gama media).
+ * - Se anima lo que aporta algo (respuesta, de dónde viene algo, cambio de estado). Lo que se repite
+ *   decenas de veces al día (filtrar, hover) es casi imperceptible o nada; lo que se hace con teclado, nada.
+ * - Lo que puede dispararse dos veces seguidas usa transiciones (se reorientan), no keyframes (empiezan de cero).
+ * - Hover con movimiento solo con ratón: `@media (hover: hover) and (pointer: fine)` (en táctil el hover se queda pegado).
+ *
+ * Movimiento reducido: menos y más suave, no cero. Cada componente quita sus desplazamientos y escalas
+ * y conserva los fundidos de opacidad y color, que ayudan a entender el cambio.
+ * Los que lo necesitan en JS usan lib/motion.js.
  */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
-  *::after,
-  ::backdrop {
-    animation-duration: 1ms !important;
-    animation-delay: 0ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
-    transition-delay: 0ms !important;
+  *::after {
     scroll-behavior: auto !important;
   }
-
-  /* La barra de tiempo del aviso "Deshacer" informa del tiempo restante: se mantiene */
-  [data-keep-motion] {
-    animation-duration: var(--keep-duration) !important;
-  }
 }
+

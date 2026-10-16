@@ -34,7 +34,26 @@
   border: 1px solid var(--line-strong);
   box-shadow: var(--shadow-pop);
   color: var(--text);
-  animation: toast-in var(--dur-slow) var(--ease-spring);
+  /* Transiciones y no keyframes: los avisos pueden llegar seguidos y así se reorientan sin saltos.
+     Algo más lento que el resto y con `ease`: un aviso pide calma, no prisa. */
+  transition:
+    opacity 400ms ease,
+    transform 400ms ease;
+}
+
+/* Entra desde abajo (su propia altura) y sale por el mismo sitio, más deprisa */
+@starting-style {
+  .toast {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+.toast[data-leaving] {
+  opacity: 0;
+  transform: translateY(100%);
+  pointer-events: none;
+  transition-duration: 250ms; /* = EXIT_MS en Toast.jsx */
 }
 
 .toast[data-tone='error'] {
@@ -54,8 +73,14 @@
   font-weight: 600;
 }
 
-.action:hover {
-  background: var(--accent-soft);
+@media (hover: hover) and (pointer: fine) {
+  .action:hover {
+    background: var(--accent-soft);
+  }
+
+  .close:hover {
+    color: var(--text);
+  }
 }
 
 .close {
@@ -65,10 +90,6 @@
   color: var(--text-faint);
   font-size: 1.25rem;
   line-height: 1;
-}
-
-.close:hover {
-  color: var(--text);
 }
 
 .timer {
@@ -91,15 +112,27 @@
   animation: drain linear forwards;
 }
 
+/* La cuenta atrás se para con la pestaña oculta o el ratón encima (Toast.jsx) */
+.region[data-paused] .timer path {
+  animation-play-state: paused;
+}
+
 @keyframes drain {
   to {
     stroke-dashoffset: 1;
   }
 }
 
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.96);
+/* Movimiento reducido: sin desplazamiento, solo el fundido. La pincelada sigue: informa del tiempo */
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .toast[data-leaving] {
+    transform: none;
+  }
+
+  @starting-style {
+    .toast {
+      transform: none;
+    }
   }
 }

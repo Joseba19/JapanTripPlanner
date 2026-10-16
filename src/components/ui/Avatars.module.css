@@ -13,14 +13,27 @@
   line-height: 1;
 }
 
+/* Alguien se apunta: la inicial aparece creciendo un poco (nunca desde cero: nada sale de la nada) */
 .avatar[data-new] {
-  animation: pop var(--dur-slow) var(--ease-spring) both;
+  animation: pop 250ms var(--ease-out) both;
 }
 
 @keyframes pop {
   from {
     opacity: 0;
-    transform: scale(0.3) translateY(4px);
+    transform: scale(0.9) translateY(3px);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar[data-new] {
+    animation-name: appear;
   }
 }
 

@@ -281,6 +281,24 @@ export default function PlansPage() {
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [isDesktop])
 
+  // Lo que se abre con el teclado (N, Enter sobre una tarjeta) aparece sin animación: con el teclado
+  // se va rápido y la animación solo lo haría parecer lento. Se decide al abrir y no cambia después.
+  const lastInputKeyboard = useRef(false)
+  useEffect(() => {
+    if (!isDesktop) return
+    const onKey = () => (lastInputKeyboard.current = true)
+    const onPointer = () => (lastInputKeyboard.current = false)
+    document.addEventListener('keydown', onKey, true)
+    document.addEventListener('pointerdown', onPointer, true)
+    return () => {
+      document.removeEventListener('keydown', onKey, true)
+      document.removeEventListener('pointerdown', onPointer, true)
+    }
+  }, [isDesktop])
+  const panelKey = overlay.isNew ? 'new' : `${overlay.editId ? 'edit' : 'plan'}-${openId}`
+  const panelOpening = useRef({ key: null, instant: false })
+  if (panelOpening.current.key !== panelKey) panelOpening.current = { key: panelKey, instant: lastInputKeyboard.current }
+
   const filterPanel = (
     <FilterPanel filters={filters} onChange={setFilters} onClear={clearFilters} activeCount={activeCount} me={me} />
   )
@@ -384,7 +402,7 @@ export default function PlansPage() {
                   <Icon name="close" />
                 </button>
               </div>
-              <div className={styles.panelBody} key={overlay.isNew ? 'new' : `${overlay.editId ? 'edit' : 'plan'}-${openId}`}>
+              <div className={styles.panelBody} key={panelKey} data-instant={panelOpening.current.instant || undefined}>
                 {panel}
               </div>
             </>

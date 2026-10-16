@@ -95,11 +95,15 @@ textarea::placeholder {
   background: var(--bg-sunken);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-s);
-  transition: border-color var(--dur-fast);
+  transition:
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 
-.input:hover {
-  border-color: var(--line-hover);
+@media (hover: hover) and (pointer: fine) {
+  .input:hover {
+    border-color: var(--line-hover);
+  }
 }
 
 .input:focus {

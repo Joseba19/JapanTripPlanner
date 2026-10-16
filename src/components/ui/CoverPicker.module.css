@@ -16,15 +16,21 @@
   background: var(--bg-sunken);
   color: var(--text-dim);
   transition:
-    border-color var(--dur-fast),
-    background-color var(--dur-fast),
-    color var(--dur-fast);
+    border-color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease,
+    color var(--dur-fast) ease;
 }
 
-.drop:hover,
 .drop[data-dragging] {
   border-color: var(--accent);
   color: var(--text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .drop:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
 }
 
 .drop[data-dragging] {

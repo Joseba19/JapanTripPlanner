@@ -1,7 +1,13 @@
-import { memo } from 'react'
+import { memo, useEffect, useState } from 'react'
 import PlanCard from './PlanCard.jsx'
 import styles from './PlanList.module.css'
 import SortableList, { STAGGERED } from './SortableList.jsx'
+
+// Entrada escalonada: 300 ms por tarjeta + 50 ms entre cada una de las primeras STAGGERED
+const ENTRANCE_MS = 300 + 50 * STAGGERED
+// Solo la primera vez que se ve la lista en la sesión (al abrir la app). Filtrar o cambiar de vista
+// pasa decenas de veces al día: ahí las tarjetas aparecen sin más, que es lo rápido.
+let entrancePlayed = false
 
 /**
  * Lista de tarjetas.
@@ -12,6 +18,14 @@ import SortableList, { STAGGERED } from './SortableList.jsx'
  * - `cardProps` se pasa a cada tarjeta (me, rate, onOpen, onToggleAttend, onToggleVote).
  */
 export default memo(function PlanList({ plans, visibleIds, selectedId, loading, empty, onMove, cardProps }) {
+  const [entering, setEntering] = useState(!entrancePlayed)
+  useEffect(() => {
+    if (loading || !entering) return
+    entrancePlayed = true
+    const timer = setTimeout(() => setEntering(false), ENTRANCE_MS)
+    return () => clearTimeout(timer)
+  }, [loading, entering])
+
   if (loading) {
     return (
       <ul className={styles.list} aria-busy="true" aria-label="Cargando planes">
@@ -34,9 +48,9 @@ export default memo(function PlanList({ plans, visibleIds, selectedId, loading, 
     <>
       {visibleIds.size === 0 && empty}
       {onMove ? (
-        <SortableList plans={plans} visibleIndex={visibleIndex} onMove={onMove} renderItem={card} />
+        <SortableList plans={plans} visibleIndex={visibleIndex} entering={entering} onMove={onMove} renderItem={card} />
       ) : (
-        <ul className={styles.list}>
+        <ul className={styles.list} data-entering={entering || undefined}>
           {plans.map((plan) => (
             <li
               key={plan.id}

@@ -21,8 +21,8 @@
   border: 1px solid var(--line-strong);
   background: var(--surface);
   transition:
-    border-color var(--dur-fast),
-    box-shadow var(--dur-fast);
+    border-color var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
 }
 
 .input::-webkit-search-cancel-button {
@@ -51,7 +51,7 @@
   font-family: inherit;
   font-size: 0.75rem;
   pointer-events: none;
-  transition: opacity var(--dur-fast);
+  transition: opacity var(--dur-fast) ease;
 }
 
 .input:focus ~ .kbd {
@@ -71,7 +71,9 @@
   color: var(--text-dim);
 }
 
-.clear:hover {
-  color: var(--text);
-  background: var(--surface-hover);
+@media (hover: hover) and (pointer: fine) {
+  .clear:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+  }
 }

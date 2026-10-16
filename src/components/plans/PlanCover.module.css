@@ -12,7 +12,7 @@
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity var(--dur-slow) var(--ease-out);
+  transition: opacity var(--dur) ease; /* la imagen llega cuando llega: fundido sin más */
 }
 
 .img[data-loaded] {

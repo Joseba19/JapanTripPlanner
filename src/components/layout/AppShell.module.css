@@ -33,11 +33,14 @@
   box-shadow: inset 0 0 0 2px var(--accent-fill), inset 0 0 0 3.5px var(--on-accent);
   font-size: 1.0625rem;
   transform: rotate(-5deg);
-  transition: transform var(--dur) var(--ease-spring);
+  transition: transform var(--dur) var(--ease-out);
 }
 
-.brand:hover .mark {
-  transform: rotate(0deg) scale(1.05);
+/* El sello se endereza al pasar el ratón: un guiño, solo con ratón y sin movimiento reducido */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .brand:hover .mark {
+    transform: rotate(0deg) scale(1.05);
+  }
 }
 
 .name {
@@ -68,12 +71,8 @@
   text-decoration: none;
   font-size: 0.9375rem;
   transition:
-    color var(--dur-fast),
-    background-color var(--dur-fast);
-}
-
-.topLink:hover {
-  color: var(--text);
+    color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease;
 }
 
 .topLink:global(.active) {
@@ -94,8 +93,11 @@
   font-size: 0.9375rem;
 }
 
-.me:hover {
-  color: var(--text);
+@media (hover: hover) and (pointer: fine) {
+  .topLink:hover,
+  .me:hover {
+    color: var(--text);
+  }
 }
 
 .meName {

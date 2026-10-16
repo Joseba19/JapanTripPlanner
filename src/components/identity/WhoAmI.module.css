@@ -63,6 +63,24 @@
   }
 }
 
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Pantalla de primera vez: aquí sí cabe el sello que se estampa. Con movimiento reducido, solo fundidos */
+@media (prefers-reduced-motion: reduce) {
+  .mark,
+  .person {
+    animation-name: appear;
+  }
+
+  .person:active {
+    transform: none;
+  }
+}
+
 .title {
   font-size: 2rem;
 }
@@ -92,14 +110,16 @@
   font-size: 1.0625rem;
   font-weight: 500;
   transition:
-    border-color var(--dur-fast),
-    background-color var(--dur-fast),
+    border-color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease,
     transform var(--dur-fast) var(--ease-out);
 }
 
-.person:hover {
-  border-color: var(--person-color);
-  background: color-mix(in srgb, var(--person-color) 10%, var(--surface));
+@media (hover: hover) and (pointer: fine) {
+  .person:hover {
+    border-color: var(--person-color);
+    background: color-mix(in srgb, var(--person-color) 10%, var(--surface));
+  }
 }
 
 .person:active {

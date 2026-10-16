@@ -10,7 +10,7 @@ import {
 import { rectSortingStrategy, SortableContext, sortableKeyboardCoordinates, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useMemo } from 'react'
-import { haptic } from '../../lib/motion.js'
+import { haptic, prefersReducedMotion } from '../../lib/motion.js'
 import listStyles from './PlanList.module.css'
 import styles from './SortableList.module.css'
 
@@ -26,7 +26,7 @@ const screenReaderInstructions = {
  * `plans` son todos; solo los de `visibleIndex` se ven y se pueden mover (los demás quedan ocultos y desactivados).
  * `renderItem(plan, dragHandleProps)` pinta cada tarjeta; `onMove(fromIndex, toIndex)` recibe índices de la lista visible.
  */
-export default function SortableList({ plans, visibleIndex, renderItem, onMove }) {
+export default function SortableList({ plans, visibleIndex, entering, renderItem, onMove }) {
   const sensors = useSensors(
     // Ratón: basta con moverlo 4 px para empezar
     useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
@@ -61,7 +61,7 @@ export default function SortableList({ plans, visibleIndex, renderItem, onMove }
       }}
     >
       <SortableContext items={ids} strategy={rectSortingStrategy}>
-        <ul className={listStyles.list}>
+        <ul className={listStyles.list} data-entering={entering || undefined}>
           {plans.map((plan) => (
             <SortableItem key={plan.id} plan={plan} index={visibleIndex.get(plan.id)} renderItem={renderItem} />
           ))}
@@ -85,7 +85,8 @@ function SortableItem({ plan, index, renderItem }) {
       data-stagger={index < STAGGERED || undefined}
       className={styles.item}
       data-dragging={isDragging || undefined}
-      style={{ transform: CSS.Translate.toString(transform), transition, '--i': index }}
+      // Con movimiento reducido, las demás tarjetas cambian de sitio sin deslizarse
+      style={{ transform: CSS.Translate.toString(transform), transition: prefersReducedMotion() ? undefined : transition, '--i': index }}
     >
       {renderItem(plan, {
         ref: setActivatorNodeRef,

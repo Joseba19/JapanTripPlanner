@@ -1,4 +1,8 @@
 .dialog {
+  /* Salir es más rápido que entrar: el sistema responde, el usuario ya ha decidido */
+  --sheet-out: 260ms;
+  --modal-in: 250ms;
+  --modal-out: 180ms;
   position: fixed;
   inset: 0;
   width: 100%;
@@ -18,13 +22,24 @@
   justify-content: flex-end;
 }
 
+/* El fondo oscuro es un ::before del propio <dialog> y no su ::backdrop: así se anima con una transición
+   (interrumpible) en todos los navegadores. El clic en él sigue llegando al <dialog>. */
 .dialog::backdrop {
-  background: var(--backdrop);
-  animation: fade-in var(--dur) var(--ease-out);
+  background: transparent;
 }
 
-.dialog[data-closing]::backdrop {
-  animation: fade-out var(--dur) ease-in forwards;
+.dialog::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--backdrop);
+  opacity: 0;
+  transition: opacity var(--sheet-out) var(--ease-out);
+}
+
+.dialog[data-shown]::before {
+  opacity: 1;
+  transition-duration: var(--dur-sheet);
 }
 
 .panel {
@@ -35,10 +50,16 @@
   border-top: 1px solid var(--line-strong);
   border-radius: var(--radius-l) var(--radius-l) 0 0;
   padding-bottom: var(--safe-b);
-  /* --drag-y: desplazamiento mientras se arrastra la cabecera para cerrar */
-  transform: translateY(var(--drag-y, 0px));
-  transition: transform var(--dur) var(--ease-out);
-  animation: sheet-in var(--dur-slow) var(--ease-out);
+  /* Hoja inferior: sube desde fuera de la pantalla y vuelve a bajar por el mismo sitio.
+     Mientras se arrastra, Sheet.jsx pone el transform en línea. */
+  position: relative;
+  transform: translateY(100%);
+  transition: transform var(--sheet-out) var(--ease-drawer);
+}
+
+.dialog[data-shown] .panel {
+  transform: none;
+  transition-duration: var(--dur-sheet);
 }
 
 .panel:focus {
@@ -47,10 +68,6 @@
 
 .panel[data-dragging] {
   transition: none;
-}
-
-.dialog[data-closing] .panel {
-  animation: sheet-out var(--dur) ease-in forwards;
 }
 
 .header {
@@ -88,9 +105,11 @@
   color: var(--text-dim);
 }
 
-.close:hover {
-  color: var(--text);
-  background: var(--surface);
+@media (hover: hover) and (pointer: fine) {
+  .close:hover {
+    color: var(--text);
+    background: var(--surface);
+  }
 }
 
 .body {
@@ -108,7 +127,8 @@
   border-top: 1px solid var(--line);
 }
 
-/* Confirmaciones: pequeñas y centradas siempre */
+/* Diálogo centrado (confirmaciones siempre; todo en pantallas anchas): no sale de ningún botón,
+   así que crece desde el centro. Nunca desde scale(0): nada aparece de la nada. */
 .dialog[data-variant='confirm'][open] {
   justify-content: center;
   align-items: center;
@@ -119,11 +139,26 @@
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-l);
   padding-bottom: 0;
-  animation-name: dialog-in;
 }
 
-.dialog[data-variant='confirm'][data-closing] .panel {
-  animation-name: dialog-out;
+.dialog[data-variant='confirm'] .panel,
+.dialog[data-variant='confirm']::before {
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity var(--modal-out) var(--ease-out),
+    transform var(--modal-out) var(--ease-out);
+}
+
+.dialog[data-variant='confirm']::before {
+  transform: none;
+}
+
+.dialog[data-variant='confirm'][data-shown] .panel,
+.dialog[data-variant='confirm'][data-shown]::before {
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--modal-in);
 }
 
 @media (min-width: 720px) {
@@ -138,11 +173,26 @@
     border: 1px solid var(--line-strong);
     border-radius: var(--radius-l);
     padding-bottom: 0;
-    animation-name: dialog-in;
   }
 
-  .dialog[data-closing] .panel {
-    animation-name: dialog-out;
+  .panel,
+  .dialog::before {
+    opacity: 0;
+    transform: scale(0.96);
+    transition:
+      opacity var(--modal-out) var(--ease-out),
+      transform var(--modal-out) var(--ease-out);
+  }
+
+  .dialog::before {
+    transform: none;
+  }
+
+  .dialog[data-shown] .panel,
+  .dialog[data-shown]::before {
+    opacity: 1;
+    transform: none;
+    transition-duration: var(--modal-in);
   }
 
   .grabber {
@@ -150,41 +200,18 @@
   }
 }
 
-@keyframes sheet-in {
-  from {
-    transform: translateY(40px);
+/* Movimiento reducido: sin subir ni crecer, solo un fundido */
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .dialog[data-variant='confirm'] .panel {
     opacity: 0;
+    transform: none;
+    transition: opacity var(--dur) ease;
   }
-}
 
-@keyframes dialog-in {
-  from {
-    transform: translateY(8px) scale(0.98);
-    opacity: 0;
-  }
-}
-
-@keyframes sheet-out {
-  to {
-    transform: translateY(100%);
-  }
-}
-
-@keyframes dialog-out {
-  to {
-    transform: translateY(6px) scale(0.98);
-    opacity: 0;
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-}
-
-@keyframes fade-out {
-  to {
-    opacity: 0;
+  .dialog[data-shown] .panel,
+  .dialog[data-variant='confirm'][data-shown] .panel {
+    opacity: 1;
+    transform: none;
   }
 }

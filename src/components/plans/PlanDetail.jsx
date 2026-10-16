@@ -2,7 +2,7 @@ import { CATEGORY_BY_ID, CITY_BY_ID, cityColor, STATUSES, statusColor } from '..
 import { formatDuration, formatPrice, isUrl, mapsUrl, relativeTime } from '../../lib/format.js'
 import { Avatar } from '../ui/Avatars.jsx'
 import Button from '../ui/Button.jsx'
-import { haptic } from '../../lib/motion.js'
+import { haptic, popIcon } from '../../lib/motion.js'
 import Icon from '../ui/Icon.jsx'
 import Stamp from '../ui/Stamp.jsx'
 import Segmented from '../ui/Segmented.jsx'
@@ -46,11 +46,11 @@ export default function PlanDetail({ plan, rate, me, readOnly, onEdit, onArchive
 
       {!archived && (
         <div className={styles.quick}>
-          <button type="button" className={styles.attend} aria-pressed={going} disabled={readOnly} onClick={() => (haptic(), onToggleAttend())}>
+          <button type="button" className={styles.attend} aria-pressed={going} disabled={readOnly} onClick={(event) => (haptic(), going || popIcon(event.currentTarget), onToggleAttend())}>
             <Icon name={going ? 'check' : 'plus'} size={18} />
             {going ? 'Voy' : 'Me apunto'}
           </button>
-          <button type="button" className={styles.vote} aria-pressed={voted} disabled={readOnly} onClick={() => (haptic(), onToggleVote())}>
+          <button type="button" className={styles.vote} aria-pressed={voted} disabled={readOnly} onClick={(event) => (haptic(), voted || popIcon(event.currentTarget), onToggleVote())}>
             <Icon name="heart" size={18} filled={voted} />
             Me interesa
             {plan.votes.length > 0 && <span className={styles.voteCount}>{plan.votes.length}</span>}

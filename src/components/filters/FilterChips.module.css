@@ -15,11 +15,13 @@
   background: var(--accent-soft);
   color: var(--text);
   font-size: 0.8125rem;
-  transition: background-color var(--dur-fast);
+  transition:
+    background-color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
 }
 
-.chip:hover {
-  background: var(--accent-softer);
+.chip:active {
+  transform: scale(0.96);
 }
 
 .chip svg {
@@ -33,6 +35,12 @@
   font-size: 0.8125rem;
 }
 
-.clear:hover {
-  color: var(--text);
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover {
+    background: var(--accent-softer);
+  }
+
+  .clear:hover {
+    color: var(--text);
+  }
 }

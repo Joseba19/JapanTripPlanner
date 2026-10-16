@@ -27,7 +27,7 @@
   color: var(--text-faint);
   text-decoration: none;
   font-size: 0.75rem;
-  transition: color var(--dur-fast);
+  transition: color var(--dur-fast) ease;
 }
 
 .link:global(.active) {
@@ -45,7 +45,19 @@
   width: 48px;
   height: 28px;
   border-radius: 999px;
-  transition: background-color var(--dur-fast);
+  transition:
+    background-color var(--dur-fast) ease,
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.link:active .icon {
+  transform: scale(0.94);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link:active .icon {
+    transform: none;
+  }
 }
 
 .link:global(.active) .icon {

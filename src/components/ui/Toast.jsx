@@ -1,28 +1,79 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import styles from './Toast.module.css'
 
 const ToastContext = createContext(null)
 let nextId = 0
 
+const EXIT_MS = 250 // = duración de salida en Toast.module.css
+
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([])
+  // id → { timeout, deadline, remaining }: el tiempo que le queda a cada aviso, para poder pausarlo
   const timers = useRef(new Map())
+  const pauses = useRef(new Set())
+  const [paused, setPaused] = useState(false)
 
-  const dismiss = useCallback((id) => {
-    clearTimeout(timers.current.get(id))
-    timers.current.delete(id)
-    setToasts((list) => list.filter((t) => t.id !== id))
-  }, [])
+  const remove = useCallback((id) => setToasts((list) => list.filter((t) => t.id !== id)), [])
+
+  // Sale por donde entró y, al terminar, se quita
+  const dismiss = useCallback(
+    (id) => {
+      clearTimeout(timers.current.get(id)?.timeout)
+      timers.current.delete(id)
+      setToasts((list) => list.map((t) => (t.id === id ? { ...t, leaving: true } : t)))
+      setTimeout(() => remove(id), EXIT_MS)
+    },
+    [remove],
+  )
+
+  const schedule = useCallback(
+    (id, ms) => {
+      if (pauses.current.size) {
+        timers.current.set(id, { remaining: ms })
+        return
+      }
+      timers.current.set(id, { timeout: setTimeout(() => dismiss(id), ms), deadline: Date.now() + ms })
+    },
+    [dismiss],
+  )
 
   const show = useCallback(
     ({ message, actionLabel, onAction, tone = 'info', duration = 4000 }) => {
       const id = ++nextId
-      setToasts((list) => [...list.slice(-2), { id, message, actionLabel, onAction, tone, duration }])
-      timers.current.set(id, setTimeout(() => dismiss(id), duration))
+      setToasts((list) => [...list.filter((t) => !t.leaving).slice(-2), { id, message, actionLabel, onAction, tone, duration }])
+      schedule(id, duration)
       return id
     },
-    [dismiss],
+    [schedule],
   )
+
+  // Pausa la cuenta atrás mientras la pestaña está oculta o el ratón está encima:
+  // quien vuelve de otra app o va a pulsar "Deshacer" no debe perder el aviso.
+  const setPause = useCallback(
+    (reason, on) => {
+      const was = pauses.current.size > 0
+      if (on) pauses.current.add(reason)
+      else pauses.current.delete(reason)
+      const now = pauses.current.size > 0
+      if (was === now) return
+      setPaused(now)
+      for (const [id, timer] of timers.current) {
+        if (now) {
+          clearTimeout(timer.timeout)
+          timers.current.set(id, { remaining: Math.max(0, timer.deadline - Date.now()) })
+        } else {
+          schedule(id, timer.remaining)
+        }
+      }
+    },
+    [schedule],
+  )
+
+  useEffect(() => {
+    const onVisibility = () => setPause('hidden', document.hidden)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [setPause])
 
   const api = useMemo(
     () => ({ show, dismiss, error: (message) => show({ message, tone: 'error', duration: 7000 }) }),
@@ -32,9 +83,16 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={api}>
       {children}
-      <div className={styles.region} role="status" aria-live="polite">
+      <div
+        className={styles.region}
+        role="status"
+        aria-live="polite"
+        data-paused={paused || undefined}
+        onPointerEnter={(event) => event.pointerType === 'mouse' && setPause('hover', true)}
+        onPointerLeave={(event) => event.pointerType === 'mouse' && setPause('hover', false)}
+      >
         {toasts.map((toast) => (
-          <div key={toast.id} className={styles.toast} data-tone={toast.tone} data-toast>
+          <div key={toast.id} className={styles.toast} data-tone={toast.tone} data-leaving={toast.leaving || undefined} data-toast>
             <span className={styles.message}>{toast.message}</span>
             {toast.actionLabel && (
               <button
@@ -57,8 +115,7 @@ export function ToastProvider({ children }) {
                 <path
                   d="M1 2.4 C 20 1.2, 38 3.1, 55 2.2 S 86 1.5, 99 2.5"
                   pathLength="1"
-                  data-keep-motion
-                  style={{ '--keep-duration': `${toast.duration}ms`, animationDuration: `${toast.duration}ms` }}
+                  style={{ animationDuration: `${toast.duration}ms` }}
                 />
               </svg>
             )}

@@ -105,6 +105,17 @@
   }
 }
 
+/* Movimiento reducido: el sello cambia de tinta sin estamparse */
+@media (prefers-reduced-motion: reduce) {
+  .seal[data-pressed] {
+    animation: none;
+  }
+
+  .seal[data-pressed]::after {
+    display: none;
+  }
+}
+
 @keyframes splash {
   0% {
     opacity: 0.55;

@@ -11,10 +11,10 @@
   content-visibility: auto;
   contain-intrinsic-size: auto 150px;
   transition:
-    border-color var(--dur-fast),
-    background-color var(--dur-fast),
+    border-color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease,
     box-shadow var(--dur) var(--ease-out),
-    transform var(--dur) var(--ease-out);
+    transform var(--dur-fast) var(--ease-out);
 }
 
 /* Filo de color de la ciudad, como el borde de un sello */
@@ -34,19 +34,29 @@
   display: none;
 }
 
-.card:hover {
-  background: var(--surface-hover);
-  border-color: var(--line-strong);
-}
-
 .card:active {
   transform: scale(0.99);
 }
 
-@media (hover: hover) {
+/* Se pasa por encima de las tarjetas decenas de veces: un levantamiento mínimo y solo con ratón
+   (en táctil el hover se queda pegado tras tocar) */
+@media (hover: hover) and (pointer: fine) {
   .card:hover {
+    background: var(--surface-hover);
+    border-color: var(--line-strong);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lift);
+  }
+
+  .card:active {
+    transform: translateY(-1px) scale(0.99);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card:hover,
+  .card:active {
+    transform: none;
   }
 }
 
@@ -186,15 +196,15 @@
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   transition:
-    color var(--dur-fast),
-    background-color var(--dur-fast),
-    border-color var(--dur-fast),
+    color var(--dur-fast) ease,
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
     transform var(--dur-fast) var(--ease-out);
 }
 
 .vote:active,
 .attend:active {
-  transform: scale(0.92);
+  transform: scale(0.95);
 }
 
 /* Sin conexión: se ven los votos y quién va, pero no se tocan (el toque abre la tarjeta) */
@@ -210,24 +220,11 @@
   color: var(--text-faint);
 }
 
-.vote:hover {
-  color: var(--accent);
-  background: var(--accent-soft);
-}
-
 .vote[aria-pressed='true'] {
   color: var(--accent);
 }
 
-.vote[aria-pressed='true'] svg {
-  animation: beat var(--dur-slow) var(--ease-spring);
-}
-
-@keyframes beat {
-  40% {
-    transform: scale(1.35);
-  }
-}
+/* El icono late al pulsar (popIcon en lib/motion.js), no al cargar ni por tiempo real */
 
 .attend {
   padding: 0 12px;
@@ -235,10 +232,6 @@
   color: var(--text-dim);
 }
 
-.attend:hover {
-  color: var(--text);
-  border-color: var(--line-hover);
-}
 
 .attend[aria-pressed='true'] {
   color: var(--text);
@@ -248,14 +241,6 @@
 
 .attend[aria-pressed='true'] svg {
   color: var(--status-hecho);
-  animation: tick var(--dur) var(--ease-spring);
-}
-
-@keyframes tick {
-  from {
-    opacity: 0;
-    transform: scale(0.4) rotate(-20deg);
-  }
 }
 
 .handle {
@@ -275,9 +260,21 @@
   -webkit-touch-callout: none;
 }
 
-.handle:hover {
-  color: var(--text);
-  background: var(--surface-hover);
+@media (hover: hover) and (pointer: fine) {
+  .vote:hover {
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .attend:hover {
+    color: var(--text);
+    border-color: var(--line-hover);
+  }
+
+  .handle:hover {
+    color: var(--text);
+    background: var(--surface-hover);
+  }
 }
 
 .handle:active {
