@@ -8,8 +8,11 @@ import Stamp from '../ui/Stamp.jsx'
 import styles from './PlanCard.module.css'
 import PlanCover from './PlanCover.jsx'
 
-/** `dragHandle`: props del asa cuando la lista se puede reordenar (orden del grupo). */
-function PlanCard({ plan, rate, me, selected, onOpen, onToggleAttend, onToggleVote, dragHandle }) {
+/**
+ * `dragHandle`: props del asa cuando la lista se puede reordenar (orden del grupo).
+ * `readOnly`: sin conexión no se puede apuntar ni votar.
+ */
+function PlanCard({ plan, rate, me, selected, readOnly, onOpen, onToggleAttend, onToggleVote, dragHandle }) {
   const city = CITY_BY_ID[plan.city]
   const category = CATEGORY_BY_ID[plan.category]
   const price = formatPrice(plan, rate)
@@ -75,6 +78,7 @@ function PlanCard({ plan, rate, me, selected, onOpen, onToggleAttend, onToggleVo
             className={styles.vote}
             aria-pressed={voted}
             aria-label={voted ? 'Quitar "me interesa"' : 'Me interesa'}
+            disabled={readOnly}
             onClick={() => {
               haptic()
               onToggleVote(plan.id)
@@ -87,6 +91,7 @@ function PlanCard({ plan, rate, me, selected, onOpen, onToggleAttend, onToggleVo
             type="button"
             className={styles.attend}
             aria-pressed={going}
+            disabled={readOnly}
             onClick={() => {
               haptic()
               onToggleAttend(plan.id)
@@ -112,7 +117,7 @@ function sameHandle(a, b) {
 
 // Con 100+ planes, cambiar un filtro no debe volver a pintar las tarjetas que no cambian
 export default memo(PlanCard, (prev, next) => {
-  for (const key of ['plan', 'rate', 'me', 'selected', 'onOpen', 'onToggleAttend', 'onToggleVote']) {
+  for (const key of ['plan', 'rate', 'me', 'selected', 'readOnly', 'onOpen', 'onToggleAttend', 'onToggleVote']) {
     if (prev[key] !== next[key]) return false
   }
   return sameHandle(prev.dragHandle, next.dragHandle)

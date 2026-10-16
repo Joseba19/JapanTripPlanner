@@ -1,7 +1,7 @@
 import styles from './Segmented.module.css'
 
 /** Selector de una opción entre pocas (radio group visual). options: [{ id, label, kanji?, color? }] */
-export default function Segmented({ options, value, onChange, label, id, describedBy, size = 'md' }) {
+export default function Segmented({ options, value, onChange, label, id, describedBy, size = 'md', disabled }) {
   return (
     <div className={styles.group} role="radiogroup" aria-label={label} id={id} aria-describedby={describedBy} data-size={size}>
       {options.map((option) => {
@@ -13,6 +13,7 @@ export default function Segmented({ options, value, onChange, label, id, describ
             role="radio"
             aria-checked={checked}
             className={styles.option}
+            disabled={disabled}
             style={option.color ? { '--seg-color': option.color } : undefined}
             onClick={() => onChange(option.id)}
           >

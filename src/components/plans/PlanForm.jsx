@@ -13,8 +13,11 @@ import PriceInput from '../ui/PriceInput.jsx'
 import Segmented from '../ui/Segmented.jsx'
 import styles from './PlanForm.module.css'
 
-/** Crear (sin `plan`) o editar un plan. `onSubmit(values)` devuelve una promesa. */
-export default function PlanForm({ plan, me, defaultCity, zones, rate, onSubmit, onCancel }) {
+/**
+ * Crear (sin `plan`) o editar un plan. `onSubmit(values)` devuelve una promesa.
+ * `readOnly`: sin conexión. Lo escrito se conserva, pero no se puede guardar hasta que vuelva.
+ */
+export default function PlanForm({ plan, me, defaultCity, zones, rate, readOnly, onSubmit, onCancel }) {
   const [form, setForm] = useState(() => (plan ? planToForm(plan) : emptyForm(me, { city: defaultCity })))
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
@@ -257,10 +260,15 @@ export default function PlanForm({ plan, me, defaultCity, zones, rate, onSubmit,
             {submitError}
           </p>
         )}
+        {readOnly && !submitError && (
+          <p className={styles.offlineNote} role="status">
+            Sin conexión: podrás guardar cuando vuelva.
+          </p>
+        )}
         <Button variant="ghost" onClick={onCancel} disabled={Boolean(saving)}>
           Cancelar
         </Button>
-        <Button variant="primary" type="submit" loading={Boolean(saving)} icon="check">
+        <Button variant="primary" type="submit" loading={Boolean(saving)} disabled={readOnly} icon="check">
           {saving === 'upload' ? 'Subiendo foto…' : plan ? 'Guardar cambios' : 'Crear plan'}
         </Button>
       </div>

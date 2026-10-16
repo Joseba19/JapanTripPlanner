@@ -197,6 +197,13 @@
   transform: scale(0.92);
 }
 
+/* Sin conexión: se ven los votos y quién va, pero no se tocan (el toque abre la tarjeta) */
+.vote:disabled,
+.attend:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .vote {
   min-width: 34px;
   padding: 0 8px;

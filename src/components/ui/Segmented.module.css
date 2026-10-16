@@ -49,3 +49,7 @@
 .option[aria-checked='true'] :global(.kanji) {
   color: var(--seg-color);
 }
+
+.option:disabled:not([aria-checked='true']) {
+  opacity: 0.5;
+}

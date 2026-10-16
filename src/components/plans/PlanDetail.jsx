@@ -10,7 +10,8 @@ import styles from './PlanDetail.module.css'
 import PlanCover from './PlanCover.jsx'
 import PlanHistory from './PlanHistory.jsx'
 
-export default function PlanDetail({ plan, rate, me, onEdit, onArchive, onRestore, onStatus, onToggleAttend, onToggleVote }) {
+/** `readOnly`: sin conexión se puede consultar todo, pero no cambiar nada. */
+export default function PlanDetail({ plan, rate, me, readOnly, onEdit, onArchive, onRestore, onStatus, onToggleAttend, onToggleVote }) {
   const city = CITY_BY_ID[plan.city]
   const category = CATEGORY_BY_ID[plan.category]
   const price = formatPrice(plan, rate)
@@ -27,7 +28,7 @@ export default function PlanDetail({ plan, rate, me, onEdit, onArchive, onRestor
       {archived && (
         <div className={styles.archived} role="note">
           <span>Archivado por {plan.archived_by ?? 'alguien'} {relativeTime(plan.archived_at)}</span>
-          <Button size="sm" icon="restore" onClick={onRestore}>Restaurar</Button>
+          <Button size="sm" icon="restore" onClick={onRestore} disabled={readOnly}>Restaurar</Button>
         </div>
       )}
 
@@ -45,11 +46,11 @@ export default function PlanDetail({ plan, rate, me, onEdit, onArchive, onRestor
 
       {!archived && (
         <div className={styles.quick}>
-          <button type="button" className={styles.attend} aria-pressed={going} onClick={() => (haptic(), onToggleAttend())}>
+          <button type="button" className={styles.attend} aria-pressed={going} disabled={readOnly} onClick={() => (haptic(), onToggleAttend())}>
             <Icon name={going ? 'check' : 'plus'} size={18} />
             {going ? 'Voy' : 'Me apunto'}
           </button>
-          <button type="button" className={styles.vote} aria-pressed={voted} onClick={() => (haptic(), onToggleVote())}>
+          <button type="button" className={styles.vote} aria-pressed={voted} disabled={readOnly} onClick={() => (haptic(), onToggleVote())}>
             <Icon name="heart" size={18} filled={voted} />
             Me interesa
             {plan.votes.length > 0 && <span className={styles.voteCount}>{plan.votes.length}</span>}
@@ -61,6 +62,7 @@ export default function PlanDetail({ plan, rate, me, onEdit, onArchive, onRestor
         label="Estado"
         options={STATUSES.map((s) => ({ ...s, color: statusColor(s.id) }))}
         value={plan.status}
+        disabled={readOnly}
         onChange={(status) => status !== plan.status && onStatus(status)}
       />
 
@@ -148,8 +150,8 @@ export default function PlanDetail({ plan, rate, me, onEdit, onArchive, onRestor
 
       {!archived && (
         <div className={styles.actions}>
-          <Button variant="primary" icon="edit" onClick={onEdit}>Editar</Button>
-          <Button variant="ghost" icon="archive" onClick={onArchive}>Archivar</Button>
+          <Button variant="primary" icon="edit" onClick={onEdit} disabled={readOnly}>Editar</Button>
+          <Button variant="ghost" icon="archive" onClick={onArchive} disabled={readOnly}>Archivar</Button>
         </div>
       )}
 

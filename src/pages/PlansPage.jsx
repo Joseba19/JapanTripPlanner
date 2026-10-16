@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import CityTabs from '../components/filters/CityTabs.jsx'
 import FilterChips from '../components/filters/FilterChips.jsx'
 import FilterPanel from '../components/filters/FilterPanel.jsx'
@@ -15,14 +15,48 @@ import { useFilters } from '../hooks/useFilters.js'
 import { useIdentity } from '../hooks/useIdentity.jsx'
 import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery.js'
 import { useOverlay } from '../hooks/useOverlay.js'
+import { formatDuration, formatEur, formatYen, summarizePlans } from '../lib/format.js'
 import { EMPTY_FILTERS, filterPlans, sortPlans } from '../lib/search.js'
 import { positionForMove } from '../lib/ordering.js'
 import { usePlans } from '../state/PlansProvider.jsx'
 import styles from './PlansPage.module.css'
 
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
+
+/** "12 planes · 18 h 30 · ≈ ¥24.500 p. p.", con el detalle (euros y lo que falta) en `title`. */
+function describeSummary({ count, minutes, jpy, unpriced, untimed }, rate) {
+  const parts = [plural(count, 'plan', 'planes')]
+  if (minutes > 0) parts.push(formatDuration(minutes))
+  if (jpy > 0) parts.push(`≈ ${formatYen(jpy)} p. p.`)
+
+  const detail = []
+  if (jpy > 0) detail.push(`Coste estimado por persona: ${formatYen(jpy)}${rate > 0 ? ` ≈ ${formatEur(Math.round(jpy / rate))}` : ''}`)
+  if (count && unpriced) detail.push(`${plural(unpriced, 'plan', 'planes')} sin precio`)
+  if (count && untimed) detail.push(`${plural(untimed, 'plan', 'planes')} sin duración`)
+  return { text: parts.join(' · '), detail: detail.join(' · ') || undefined }
+}
+
+/** Escribiendo en un campo, los atajos de una letra no deben saltar. */
+const isTyping = (target) => Boolean(target?.closest?.('input, textarea, select, [contenteditable="true"]'))
+
 export default function PlansPage() {
-  const { status, error, plans, active, rate, reload, create, update, setStatus, archive, restore, toggleAttendee, toggleVote, move } =
-    usePlans()
+  const {
+    status,
+    error,
+    plans,
+    active,
+    rate,
+    offline,
+    reload,
+    create,
+    update,
+    setStatus,
+    archive,
+    restore,
+    toggleAttendee,
+    toggleVote,
+    move,
+  } = usePlans()
   const { me } = useIdentity()
   const toast = useToast()
   const { filters, setFilters, clearFilters, sort, setSort, activeCount } = useFilters()
@@ -53,6 +87,8 @@ export default function PlansPage() {
     return counts
   }, [withoutCity])
 
+  const summary = useMemo(() => describeSummary(summarizePlans(visible, rate), rate), [visible, rate])
+
   const zones = useMemo(
     () => [...new Set(plans.map((p) => p.zone).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
     [plans],
@@ -72,6 +108,7 @@ export default function PlansPage() {
         defaultCity={filters.city}
         zones={zones}
         rate={rate}
+        readOnly={offline}
         onCancel={overlay.close}
         onSubmit={async (values) => {
           const saved = await create(values)
@@ -89,6 +126,7 @@ export default function PlansPage() {
         me={me}
         zones={zones}
         rate={rate}
+        readOnly={offline}
         onCancel={overlay.close}
         onSubmit={async (values) => {
           await update(openPlan.id, values)
@@ -104,6 +142,7 @@ export default function PlansPage() {
         plan={openPlan}
         rate={rate}
         me={me}
+        readOnly={offline}
         onEdit={() => overlay.openEdit(openPlan.id)}
         onToggleAttend={() => toggleAttendee(openPlan.id)}
         onToggleVote={() => toggleVote(openPlan.id)}
@@ -131,7 +170,11 @@ export default function PlansPage() {
         <EmptyState
           kanji="旅"
           title="Aún no hay planes"
-          action={<Button variant="primary" icon="plus" onClick={overlay.openNew}>Añadir el primero</Button>}
+          action={
+            <Button variant="primary" icon="plus" onClick={overlay.openNew} disabled={offline}>
+              Añadir el primero
+            </Button>
+          }
         >
           Templos, ramen, onsen, karaoke… Todo lo que queráis hacer en Japón empieza aquí.
         </EmptyState>
@@ -144,24 +187,54 @@ export default function PlansPage() {
           Prueba con otra búsqueda o quita algún filtro.
         </EmptyState>
       ),
-    [noPlansAtAll, overlay.openNew, setFilters],
+    [noPlansAtAll, overlay.openNew, setFilters, offline],
   )
 
   // Props estables: PlanList está memorizada y solo se repinta cuando cambia la lista (en segundo plano)
   const cardProps = useMemo(
-    () => ({ me, rate, onOpen: overlay.openPlan, onToggleAttend: toggleAttendee, onToggleVote: toggleVote }),
-    [me, rate, overlay.openPlan, toggleAttendee, toggleVote],
+    () => ({ me, rate, readOnly: offline, onOpen: overlay.openPlan, onToggleAttend: toggleAttendee, onToggleVote: toggleVote }),
+    [me, rate, offline, overlay.openPlan, toggleAttendee, toggleVote],
   )
   const onMove = useMemo(
     () =>
-      listSort === 'manual'
+      // Sin conexión no se puede reordenar: la lista se queda fija (sin asas)
+      listSort === 'manual' && !offline
         ? (from, to) => {
             const position = positionForMove(plans, visible, from, to)
             if (position) move(visible[from].id, position)
           }
         : undefined,
-    [listSort, plans, visible, move],
+    [listSort, offline, plans, visible, move],
   )
+
+  // Atajos de escritorio: "/" busca, "n" crea un plan y Esc cierra el panel
+  const shortcuts = useRef(null)
+  shortcuts.current = { panelOpen: Boolean(openId || overlay.isNew), offline, overlay }
+  useEffect(() => {
+    if (!isDesktop) return
+    const onKeyDown = (event) => {
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return
+      // Un diálogo abierto (confirmar, etc.) gestiona sus propias teclas
+      if (document.querySelector('dialog[open]')) return
+      const { panelOpen, offline, overlay } = shortcuts.current
+      if (event.key === 'Escape') {
+        // Primero se sale del campo; un segundo Esc cierra el panel
+        if (isTyping(event.target)) event.target.blur()
+        else if (panelOpen) overlay.close()
+        return
+      }
+      if (isTyping(event.target)) return
+      if (event.key === '/') {
+        event.preventDefault()
+        document.getElementById('plan-search')?.focus()
+      } else if ((event.key === 'n' || event.key === 'N') && !offline) {
+        event.preventDefault()
+        overlay.openNew()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [isDesktop])
 
   const filterPanel = (
     <FilterPanel filters={filters} onChange={setFilters} onClear={clearFilters} activeCount={activeCount} me={me} />
@@ -171,7 +244,15 @@ export default function PlansPage() {
     <div className={styles.page}>
       {isDesktop && (
         <aside className={styles.sidebar} aria-label="Filtros">
-          <Button variant="primary" icon="plus" className={styles.newDesktop} onClick={overlay.openNew}>
+          <Button
+            variant="primary"
+            icon="plus"
+            className={styles.newDesktop}
+            onClick={overlay.openNew}
+            disabled={offline}
+            aria-keyshortcuts="n"
+            title={offline ? 'Sin conexión' : 'Nuevo plan (N)'}
+          >
             Nuevo plan
           </Button>
           {filterPanel}
@@ -181,7 +262,7 @@ export default function PlansPage() {
       <section className={styles.main} aria-label="Planes">
         <div className={styles.toolbar}>
           <div className={styles.searchRow}>
-            <SearchBar value={filters.q} onChange={(q) => setFilters({ q })} />
+            <SearchBar value={filters.q} onChange={(q) => setFilters({ q })} shortcut={isDesktop ? '/' : undefined} />
             {!isDesktop && (
               <button
                 type="button"
@@ -204,8 +285,8 @@ export default function PlansPage() {
         ) : (
           <>
             <div className={styles.listHeader}>
-              <p className={styles.count} aria-live="polite">
-                {status === 'ready' && `${visible.length} ${visible.length === 1 ? 'plan' : 'planes'}`}
+              <p className={styles.count} aria-live="polite" title={status === 'ready' ? summary.detail : undefined}>
+                {status === 'ready' && summary.text}
               </p>
               <SortMenu value={sort} onChange={setSort} />
             </div>
@@ -260,7 +341,7 @@ export default function PlansPage() {
               </Button>
             </div>
           </Sheet>
-          <button type="button" className={styles.fab} onClick={overlay.openNew} aria-label="Nuevo plan">
+          <button type="button" className={styles.fab} onClick={overlay.openNew} disabled={offline} aria-label="Nuevo plan">
             <Icon name="plus" size={26} />
           </button>
         </>

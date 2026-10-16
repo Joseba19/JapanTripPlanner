@@ -35,6 +35,29 @@
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
+.kbd {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  color: var(--text-faint);
+  font-family: inherit;
+  font-size: 0.75rem;
+  pointer-events: none;
+  transition: opacity var(--dur-fast);
+}
+
+.input:focus ~ .kbd {
+  opacity: 0;
+}
+
 .clear {
   position: absolute;
   right: 5px;

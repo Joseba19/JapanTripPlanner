@@ -211,6 +211,12 @@
   color: var(--text);
 }
 
+.attend:disabled,
+.vote:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .attend[aria-pressed='true'] {
   color: var(--text);
   border-color: color-mix(in srgb, var(--status-hecho) 55%, transparent);

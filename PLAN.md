@@ -8,7 +8,7 @@ Web personal (no comercial) para que 4 amigos (Joseba, Filip, Gahona, Ander) pla
 - **Restricciones:** Supabase en plan gratuito (se pausa tras 7 días sin actividad) y Vercel Hobby.
 - **Punto de partida:** el repo está vacío (solo `.git`), así que no hay código que reutilizar.
 
-> Estado (2026-10-16): Fases 0, 1, 1.5, 2 y 3 desplegadas en Vercel. Siguiente: Fase 4 (PWA sin conexión y pulido).
+> Estado (2026-10-16): Fases 0, 1, 1.5, 2 y 3 desplegadas en Vercel. Fase 4 (PWA sin conexión y pulido) implementada; falta desplegarla y probarla en los móviles.
 
 ---
 
@@ -208,6 +208,15 @@ Decisiones: **subir foto o pegar URL**, **banda 16:9 en la parte superior de la 
   - Instalar la app en la pantalla de inicio desde la URL de Vercel (Android Chrome e iOS Safari → "Añadir a inicio").
   - Activar el modo avión: la app abre y muestra los planes. Al volver la conexión, se sincroniza.
   - Lighthouse PWA.
+
+**Notas de implementación (Fase 4, hecha):**
+- **PWA:** `vite-plugin-pwa` 1.3 (`generateSW`). Precachea JS, CSS, WOFF2, texturas e `index.html` (unos 570 KB; los `.woff` antiguos y los iconos no). Las portadas ya vistas se guardan en una caché `covers` (CacheFirst, 200 como máximo). Supabase (REST y Realtime) nunca pasa por el service worker.
+- **Actualizaciones:** `registerType: 'prompt'`. Cuando hay versión nueva sale un toast «Actualizar» en vez de recargar sola (podría cortar una edición). Se comprueba cada hora. El registro va en `useServiceWorker` y se carga diferido; necesita `immediate: true` porque el evento `load` ya ha pasado.
+- **Copia local:** en lugar de IndexedDB, una instantánea en `localStorage` (`jtp.snapshot`, versionada; `lib/snapshot.js`). Se guarda tras cada cambio con 500 ms de espera. La app **arranca siempre desde la copia** (sin esqueleto) y luego se actualiza con el servidor.
+- **Sin conexión = solo lectura:** `offline` = el navegador está sin red **o** la última carga falló por la red (wifi con portal, cobertura mínima). En ese caso se reintenta cada 20 s. Insignia «Sin conexión» en la cabecera (con la antigüedad de los datos en `title`). Se desactivan crear, editar, archivar, restaurar, borrar, estado, «me apunto», «me interesa», arrastrar y tipo de cambio. El `PlansProvider` además rechaza cualquier escritura. Un formulario abierto conserva lo escrito y se puede guardar al volver la conexión. El historial no se pide sin conexión.
+- **Iconos:** `scripts/make-icons.py` (Pillow) dibuja el sello 旅 con la Shippori Mincho recortada: `public/icons/` (192, 512, maskable y apple-touch-icon).
+- **Pulido:** resumen de lo filtrado («12 planes · 18 h 30 · ≈ ¥24.500 p. p.»; en `title` van el coste en euros y cuántos no tienen precio o duración; `summarizePlans` en `lib/format.js`). Atajos de escritorio: `/` busca (con la pista `/` en el buscador), `n` crea un plan, `Esc` sale del campo y un segundo `Esc` cierra el panel. «Abrir en Maps» ya existía en el detalle.
+- **Probado** con Chrome headless (DevTools Protocol) sobre `vite preview`: el SW se instala, con la red cortada la app abre desde la caché con la copia local en solo lectura, y al volver la red desaparece la insignia y se puede escribir. **Pendiente:** instalarla en iOS y Android y la prueba de campo en modo avión.
 
 ---
 

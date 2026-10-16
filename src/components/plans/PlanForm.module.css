@@ -42,3 +42,9 @@
   color: var(--danger);
   font-size: 0.875rem;
 }
+
+.offlineNote {
+  flex-basis: 100%;
+  color: var(--text-dim);
+  font-size: 0.875rem;
+}

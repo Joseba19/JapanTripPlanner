@@ -4,12 +4,18 @@ import AppShell from './components/layout/AppShell.jsx'
 import { EmptyState } from './components/plans/PlanList.jsx'
 import { ToastProvider } from './components/ui/Toast.jsx'
 import { IdentityProvider, useIdentity } from './hooks/useIdentity.jsx'
+import { useServiceWorker } from './hooks/useServiceWorker.js'
 import { ThemeProvider } from './hooks/useTheme.jsx'
 import { db } from './lib/supabase.js'
 import ArchivePage from './pages/ArchivePage.jsx'
 import PlansPage from './pages/PlansPage.jsx'
 import SettingsPage from './pages/SettingsPage.jsx'
 import { PlansProvider } from './state/PlansProvider.jsx'
+
+function ServiceWorker() {
+  useServiceWorker()
+  return null
+}
 
 function IdentityGate({ children }) {
   const { me } = useIdentity()
@@ -28,6 +34,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
+        <ServiceWorker />
         <IdentityProvider>
           <IdentityGate>
             <PlansProvider>

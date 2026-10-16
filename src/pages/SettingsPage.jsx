@@ -6,13 +6,14 @@ import { useToast } from '../components/ui/Toast.jsx'
 import { useIdentity } from '../hooks/useIdentity.jsx'
 import { THEMES, useTheme } from '../hooks/useTheme.jsx'
 import { PEOPLE } from '../lib/constants.js'
+import { relativeTime } from '../lib/format.js'
 import { usePlans } from '../state/PlansProvider.jsx'
 import styles from './SettingsPage.module.css'
 
 export default function SettingsPage() {
   const { me, setMe } = useIdentity()
   const { theme, setTheme } = useTheme()
-  const { plans, rate, setRate } = usePlans()
+  const { plans, rate, offline, syncedAt, setRate } = usePlans()
   const toast = useToast()
   const [rateInput, setRateInput] = useState(() => String(rate).replace('.', ','))
   const [savingRate, setSavingRate] = useState(false)
@@ -67,7 +68,10 @@ export default function SettingsPage() {
 
       <section className={styles.section}>
         <h2 className={styles.heading}>Tipo de cambio</h2>
-        <p className={styles.text}>Compartido por los cuatro. Se usa para convertir entre yenes y euros.</p>
+        <p className={styles.text}>
+          Compartido por los cuatro. Se usa para convertir entre yenes y euros.
+          {offline && ' Sin conexión no se puede cambiar.'}
+        </p>
         <form className={styles.rate} onSubmit={saveRate}>
           <label className={styles.rateLabel} htmlFor="rate">1 € =</label>
           <input
@@ -75,11 +79,12 @@ export default function SettingsPage() {
             className={`input ${styles.rateInput}`}
             inputMode="decimal"
             value={rateInput}
+            disabled={offline}
             aria-invalid={!rateValid || undefined}
             onChange={(e) => setRateInput(e.target.value)}
           />
           <span className={styles.rateLabel}>¥</span>
-          <Button type="submit" variant="primary" size="sm" loading={savingRate} disabled={!rateChanged}>
+          <Button type="submit" variant="primary" size="sm" loading={savingRate} disabled={!rateChanged || offline}>
             Guardar
           </Button>
         </form>
@@ -90,6 +95,10 @@ export default function SettingsPage() {
         <p className={styles.text}>
           Descarga todos los planes ({plans.length}, archivados incluidos) en un archivo JSON. Conviene hacerlo de vez en
           cuando y antes del viaje.
+        </p>
+        <p className={styles.text}>
+          Este dispositivo guarda además una copia para consultarlos sin conexión
+          {syncedAt ? ` (actualizada ${relativeTime(new Date(syncedAt).toISOString())})` : ''}.
         </p>
         <Button icon="download" onClick={exportJson} className={styles.export}>
           Exportar JSON

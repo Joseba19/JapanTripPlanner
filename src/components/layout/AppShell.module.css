@@ -102,6 +102,31 @@
   display: none;
 }
 
+/* Insignia de solo lectura: al lado del usuario, sin empujar la marca */
+.offline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  min-height: 30px;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  color: var(--text);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.offline svg {
+  color: var(--gold);
+}
+
+.offline + .me {
+  margin-left: 0;
+}
+
 @media (min-width: 480px) {
   .meName {
     display: inline;

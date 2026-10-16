@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDuration, formatEur, formatPrice, formatYen, mapsUrl, perPersonJpy, relativeTime } from './format.js'
+import { formatDuration, formatEur, formatPrice, formatYen, mapsUrl, perPersonJpy, relativeTime, summarizePlans } from './format.js'
 
 const plan = (overrides) => ({ price_amount: 3800, price_currency: 'JPY', price_per: 'persona', attendees: [], ...overrides })
 
@@ -44,6 +44,21 @@ describe('perPersonJpy', () => {
   })
   it('convierte euros', () => {
     expect(perPersonJpy(plan({ price_amount: 10, price_currency: 'EUR' }), 160)).toBe(1600)
+  })
+})
+
+describe('summarizePlans', () => {
+  it('suma duración y coste por persona, y cuenta lo que falta', () => {
+    const plans = [
+      plan({ price_amount: 1000, duration_min: 60 }),
+      plan({ price_amount: 10, price_currency: 'EUR', duration_min: null }),
+      plan({ price_amount: 8000, price_per: 'total', attendees: ['Joseba', 'Filip'], duration_min: 90 }),
+      plan({ price_amount: null, duration_min: 30 }),
+    ]
+    expect(summarizePlans(plans, 160)).toEqual({ count: 4, minutes: 180, jpy: 1000 + 1600 + 4000, unpriced: 1, untimed: 1 })
+  })
+  it('lista vacía', () => {
+    expect(summarizePlans([], 160)).toEqual({ count: 0, minutes: 0, jpy: 0, unpriced: 0, untimed: 0 })
   })
 })
 

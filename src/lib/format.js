@@ -49,6 +49,25 @@ export function formatPrice(plan, rate) {
   return { primary, secondary, per: plan.price_per === 'total' ? 'total' : 'por persona' }
 }
 
+/**
+ * Totales de una lista de planes: duración sumada y coste estimado por persona (en yenes).
+ * `unpriced` y `untimed` cuentan los que no tienen precio o duración (no suman nada).
+ */
+export function summarizePlans(plans, rate) {
+  let minutes = 0
+  let jpy = 0
+  let unpriced = 0
+  let untimed = 0
+  for (const plan of plans) {
+    if (plan.duration_min == null) untimed++
+    else minutes += plan.duration_min
+    const price = perPersonJpy(plan, rate)
+    if (price == null) unpriced++
+    else jpy += price
+  }
+  return { count: plans.length, minutes, jpy, unpriced, untimed }
+}
+
 export function formatDuration(minutes) {
   if (minutes == null) return null
   if (minutes < 60) return `${minutes} min`

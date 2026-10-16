@@ -65,6 +65,7 @@
 }
 
 .count {
+  min-width: 0;
   font-size: 0.875rem;
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
@@ -92,6 +93,14 @@
 
 .fab:active {
   transform: scale(0.92);
+}
+
+/* Sin conexión: se ve apagado para que se entienda que ahora no se puede crear */
+.fab:disabled {
+  background: var(--surface);
+  color: var(--text-faint);
+  box-shadow: none;
+  border: 1px solid var(--line-strong);
 }
 
 .sheetDone {

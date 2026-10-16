@@ -9,7 +9,7 @@ import { usePlans } from '../state/PlansProvider.jsx'
 import styles from './ArchivePage.module.css'
 
 export default function ArchivePage() {
-  const { archived, status, restore, destroy } = usePlans()
+  const { archived, status, offline, restore, destroy } = usePlans()
   const toast = useToast()
   const [confirming, setConfirming] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -51,10 +51,17 @@ export default function ArchivePage() {
                 </p>
               </div>
               <div className={styles.actions}>
-                <Button size="sm" icon="restore" onClick={() => restore(plan.id)}>
+                <Button size="sm" icon="restore" onClick={() => restore(plan.id)} disabled={offline}>
                   Restaurar
                 </Button>
-                <Button size="sm" variant="danger" icon="trash" onClick={() => setConfirming(plan)} aria-label={`Borrar ${plan.title} para siempre`} />
+                <Button
+                  size="sm"
+                  variant="danger"
+                  icon="trash"
+                  onClick={() => setConfirming(plan)}
+                  disabled={offline}
+                  aria-label={`Borrar ${plan.title} para siempre`}
+                />
               </div>
             </li>
           ))}

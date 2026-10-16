@@ -1,5 +1,7 @@
 import { Link, NavLink, Outlet } from 'react-router'
 import { useIdentity } from '../../hooks/useIdentity.jsx'
+import { relativeTime } from '../../lib/format.js'
+import { usePlans } from '../../state/PlansProvider.jsx'
 import { Avatar } from '../ui/Avatars.jsx'
 import Icon from '../ui/Icon.jsx'
 import styles from './AppShell.module.css'
@@ -7,6 +9,7 @@ import BottomNav, { NAV_ITEMS } from './BottomNav.jsx'
 
 export default function AppShell() {
   const { me } = useIdentity()
+  const { offline, syncedAt } = usePlans()
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
@@ -25,6 +28,17 @@ export default function AppShell() {
             </NavLink>
           ))}
         </nav>
+
+        {offline && (
+          <p
+            className={styles.offline}
+            role="status"
+            title={syncedAt ? `Solo lectura · datos de ${relativeTime(new Date(syncedAt).toISOString())}` : 'Solo lectura'}
+          >
+            <Icon name="offline" size={16} />
+            Sin conexión
+          </p>
+        )}
 
         <Link to="/ajustes" className={styles.me} aria-label={`Eres ${me}. Cambiar en Ajustes`}>
           <Avatar name={me} size={28} />

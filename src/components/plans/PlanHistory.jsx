@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchEvents } from '../../api/plans.js'
 import { describeEvent } from '../../lib/events.js'
 import { relativeTime } from '../../lib/format.js'
+import { usePlans } from '../../state/PlansProvider.jsx'
 import { Avatar } from '../ui/Avatars.jsx'
 import styles from './PlanHistory.module.css'
 
@@ -12,8 +13,11 @@ export default function PlanHistory({ planId, version }) {
   const [events, setEvents] = useState(null)
   const [failed, setFailed] = useState(false)
   const [expanded, setExpanded] = useState(false)
+  const { offline } = usePlans()
 
+  // El historial no va en la copia local: sin conexión ni se pide. Al volver, se carga.
   useEffect(() => {
+    if (offline) return
     let cancelled = false
     fetchEvents(planId)
       .then((data) => !cancelled && (setEvents(data), setFailed(false)))
@@ -21,8 +25,9 @@ export default function PlanHistory({ planId, version }) {
     return () => {
       cancelled = true
     }
-  }, [planId, version])
+  }, [planId, version, offline])
 
+  if (offline && !events) return <p className={styles.muted}>Sin conexión: el historial no está disponible.</p>
   if (failed) return <p className={styles.muted}>No se pudo cargar el historial.</p>
   if (!events) return <p className={styles.muted}>Cargando…</p>
   if (!events.length) return <p className={styles.muted}>Sin cambios registrados.</p>

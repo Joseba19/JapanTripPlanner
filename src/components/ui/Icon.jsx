@@ -26,6 +26,7 @@ const PATHS = {
     </g>
   ),
   history: <><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></>,
+  offline: <path d="M3 3l18 18M8.5 8.6A5 5 0 0 0 6.5 18H17M20.8 16.6A4 4 0 0 0 17 11h-.3A6 6 0 0 0 10 6.3" />,
 }
 
 export default function Icon({ name, size = 20, className, title, filled = false }) {
