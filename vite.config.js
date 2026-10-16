@@ -2,9 +2,21 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// En desarrollo, /api/geocode responde igual que en Vercel (la función usa la API de Node a secas)
+const devApi = {
+  name: 'dev-api',
+  configureServer(server) {
+    server.middlewares.use('/api/geocode', async (req, res) => {
+      const { default: handler } = await server.ssrLoadModule('/api/geocode.js')
+      return handler(req, res)
+    })
+  },
+}
+
 export default defineConfig({
   plugins: [
     react(),
+    devApi,
     VitePWA({
       // Avisamos nosotros de la versión nueva (toast "Actualizar"): recargar solos podría cortar una edición
       registerType: 'prompt',
@@ -39,8 +51,20 @@ export default defineConfig({
         // Los datos (Supabase REST y Realtime) no pasan por la caché: la instantánea vive en localStorage
         runtimeCaching: [
           {
+            // Mosaicos del mapa ya vistos: sin conexión se ve lo que se miró antes. Van con CORS (no opacos).
+            // CacheFirst también respeta la política de OSM (guardarlos al menos 7 días en vez de pedirlos otra vez).
+            urlPattern: ({ url }) => url.hostname === 'tile.openstreetmap.org',
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'map-tiles',
+              expiration: { maxEntries: 800, maxAgeSeconds: 60 * 60 * 24 * 30, purgeOnQuotaError: true },
+              cacheableResponse: { statuses: [200] },
+            },
+          },
+          {
             // Portadas (Supabase Storage o URL pegada): se guardan las que ya se han visto
-            urlPattern: ({ request, sameOrigin }) => request.destination === 'image' && !sameOrigin,
+            urlPattern: ({ request, sameOrigin, url }) =>
+              request.destination === 'image' && !sameOrigin && url.hostname !== 'tile.openstreetmap.org',
             handler: 'CacheFirst',
             options: {
               cacheName: 'covers',

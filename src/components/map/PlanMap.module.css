@@ -1,0 +1,129 @@
+/* Leaflet usa z-index de 400 a 1000: `isolation` los encierra para que no tapen la cabecera ni las hojas */
+.map {
+  position: relative;
+  isolation: isolate;
+  height: 100%;
+  min-height: 320px;
+  border-radius: var(--radius-l);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.map:global(.leaflet-container) {
+  background: var(--bg-raised);
+  font-family: inherit;
+  font-size: 0.8125rem;
+}
+
+/* Tema oscuro: el mapa claro de OSM invertido y apagado, a juego con la tinta sumi (solo la capa de mosaicos) */
+.map[data-tone='dark'] :global(.leaflet-tile-pane) {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88) saturate(0.55);
+}
+
+.map[data-tone='light'] :global(.leaflet-tile-pane) {
+  filter: saturate(0.8) sepia(0.08);
+}
+
+/* ───── Chinchetas ───── */
+.pin {
+  background: none;
+  border: 0;
+}
+
+.pinHead {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50% 50% 50% 4px;
+  transform: rotate(-45deg);
+  transform-origin: center;
+  margin-top: 0;
+  background: var(--bg-raised);
+  border: 2px solid var(--pin);
+  color: var(--pin);
+  box-shadow: var(--shadow-pop);
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.pinHead > span {
+  transform: rotate(45deg);
+  font-size: 0.9375rem;
+  line-height: 1;
+}
+
+.pinHead[data-status='confirmado'],
+.pinHead[data-status='hecho'] {
+  background: var(--pin);
+  color: var(--bg);
+}
+
+.pin:hover .pinHead,
+.pin:focus-visible .pinHead {
+  transform: rotate(-45deg) scale(1.12);
+}
+
+.pinHead[data-selected] {
+  transform: rotate(-45deg) scale(1.22);
+  outline: 3px solid color-mix(in srgb, var(--pin) 35%, transparent);
+  outline-offset: 2px;
+}
+
+/* ───── Etiqueta al pasar el ratón ───── */
+.tooltip:global(.leaflet-tooltip) {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--bg-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-pop);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tooltip:global(.leaflet-tooltip-top)::before {
+  border-top-color: var(--line-strong);
+}
+
+/* ───── Controles (zoom y créditos) ───── */
+.map :global(.leaflet-bar) {
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.map :global(.leaflet-bar a) {
+  width: 34px;
+  height: 34px;
+  line-height: 32px;
+  background: var(--surface);
+  color: var(--text);
+  border-bottom-color: var(--line);
+}
+
+.map :global(.leaflet-bar a:hover) {
+  background: var(--surface-hover);
+}
+
+.map :global(.leaflet-bar a.leaflet-disabled) {
+  background: var(--surface);
+  color: var(--text-faint);
+}
+
+.map :global(.leaflet-control-attribution) {
+  background: color-mix(in srgb, var(--bg-raised) 80%, transparent);
+  color: var(--text-faint);
+  font-size: 0.6875rem;
+}
+
+.map :global(.leaflet-control-attribution a) {
+  color: var(--text-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pinHead {
+    transition: none;
+  }
+}

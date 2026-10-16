@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router'
-import { parseFilters, parseSort, writeFilters } from '../lib/filterParams.js'
+import { parseFilters, parseSort, parseView, writeFilters } from '../lib/filterParams.js'
 import { countActiveFilters, EMPTY_FILTERS } from '../lib/search.js'
 
 /**
@@ -12,6 +12,7 @@ export function useFilters() {
   const [params, rawSetParams] = useSearchParams()
   const filters = useMemo(() => parseFilters(params), [params])
   const sort = parseSort(params)
+  const view = parseView(params)
   const setParamsRef = useRef(rawSetParams)
   setParamsRef.current = rawSetParams
   const setParams = useCallback((...args) => setParamsRef.current(...args), [])
@@ -44,11 +45,23 @@ export function useFilters() {
     [setParams],
   )
 
+  // Con push: el botón "atrás" del móvil vuelve de la vista de mapa a la lista
+  const setView = useCallback(
+    (value) =>
+      setParams((prev) => {
+        const updated = new URLSearchParams(prev)
+        if (value === 'mapa') updated.set('vista', 'mapa')
+        else updated.delete('vista')
+        return updated
+      }),
+    [setParams],
+  )
+
   /** Quita los filtros del panel; mantiene búsqueda y ciudad. */
   const clearFilters = useCallback(
     () => setFilters((current) => ({ ...EMPTY_FILTERS, q: current.q, city: current.city })),
     [setFilters],
   )
 
-  return { filters, setFilters, clearFilters, sort, setSort, activeCount: countActiveFilters(filters) }
+  return { filters, setFilters, clearFilters, sort, setSort, view, setView, activeCount: countActiveFilters(filters) }
 }

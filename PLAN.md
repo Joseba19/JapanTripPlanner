@@ -218,6 +218,17 @@ Decisiones: **subir foto o pegar URL**, **banda 16:9 en la parte superior de la 
 - **Pulido:** resumen de lo filtrado («12 planes · 18 h 30 · ≈ ¥24.500 p. p.»; en `title` van el coste en euros y cuántos no tienen precio o duración; `summarizePlans` en `lib/format.js`). Atajos de escritorio: `/` busca (con la pista `/` en el buscador), `n` crea un plan, `Esc` sale del campo y un segundo `Esc` cierra el panel. «Abrir en Maps» ya existía en el detalle.
 - **Probado** con Chrome headless (DevTools Protocol) sobre `vite preview`: el SW se instala, con la red cortada la app abre desde la caché con la copia local en solo lectura, y al volver la red desaparece la insignia y se puede escribir. **Pendiente:** instalarla en iOS y Android y la prueba de campo en modo avión.
 
+### Mapa de los planes (añadido tras la Fase 4)
+- **Qué sale:** los planes cuya dirección es un **enlace de Google Maps**. Los que tienen una dirección escrita (o nada) se cuentan bajo el mapa, igual que los enlaces que no se pudieron situar (con su título, para abrirlos y corregirlos). El campo del formulario se llama ahora simplemente «Dirección».
+- **Vista:** botón Lista/Mapa junto al buscador (`?vista=mapa`; en escritorio también la tecla `m`). Respeta la búsqueda, la ciudad y los filtros, y se reencuadra al cambiarlos (no al editar un plan). Al tocar una chincheta se abre el plan: hoja en el móvil, panel derecho en escritorio. Cada chincheta lleva el kanji de la categoría y el color de la ciudad, y va rellena si el plan está confirmado o hecho.
+- **Coordenadas, sin tocar la base de datos:**
+  - `lib/geo.js` las lee del propio enlace (`!3d…!4d…`, `@lat,lng`, `?q=lat,lng`).
+  - Los enlaces cortos de «Compartir» (`maps.app.goo.gl`) y los que solo traen un nombre (`?q=Kinkaku-ji`) los resuelve `api/geocode.js`. Sigue la redirección, solo hacia dominios de Google, y si no hay coordenadas busca el nombre en Nominatim (OSM) dentro de Japón. La CDN de Vercel guarda la respuesta un año.
+  - Cada dispositivo guarda lo resuelto en `localStorage` (`jtp.geo`). Un enlace que no se pudo situar se reintenta a la semana.
+- **Mapa:** Leaflet 1.9 cargado aparte (~45 KB comprimidos, solo al abrir el mapa) con los mosaicos estándar de OpenStreetMap; en el tema oscuro se invierten con un filtro CSS. CARTO se descartó: ya pide clave. Los mosaicos vistos se guardan en la caché `map-tiles` del service worker (800 como máximo, 30 días), así que sin conexión se ve lo ya mirado.
+- **Desarrollo:** `vite.config.js` monta `/api/geocode` en `npm run dev`, así que funciona igual que en Vercel.
+- **Probado** con Chrome headless: enlace largo, enlace corto real (`goo.gl/maps`), enlace con solo el nombre, coordenadas en `?query=`, enlace roto y dirección escrita; filtro por ciudad, tema claro y oscuro, chincheta → detalle, y tecla `m`. **Pendiente:** probar en el móvil un `maps.app.goo.gl` recién compartido desde la app de Google Maps.
+
 ---
 
 ## 5. Verificación global (antes del viaje)

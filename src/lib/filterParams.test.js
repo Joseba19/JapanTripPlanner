@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseFilters, parseSort, writeFilters } from './filterParams.js'
+import { parseFilters, parseSort, parseView, writeFilters } from './filterParams.js'
 import { EMPTY_FILTERS } from './search.js'
 
 describe('filtros en la URL', () => {
@@ -24,5 +24,11 @@ describe('filtros en la URL', () => {
     expect(parseSort(new URLSearchParams(''))).toBe('manual')
     expect(parseSort(new URLSearchParams('sort=precio'))).toBe('precio')
     expect(parseSort(new URLSearchParams('sort=nope'))).toBe('manual')
+  })
+
+  it('vista: lista por defecto, mapa con ?vista=mapa', () => {
+    expect(parseView(new URLSearchParams(''))).toBe('lista')
+    expect(parseView(new URLSearchParams('vista=mapa'))).toBe('mapa')
+    expect(parseView(new URLSearchParams('vista=otra'))).toBe('lista')
   })
 })

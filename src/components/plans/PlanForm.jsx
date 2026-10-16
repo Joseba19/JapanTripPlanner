@@ -134,7 +134,7 @@ export default function PlanForm({ plan, me, defaultCity, zones, rate, readOnly,
             </>
           )}
         </Field>
-        <Field label="Dirección o enlace de Maps" optional error={errors.location}>
+        <Field label="Dirección" optional error={errors.location}>
           {({ id, describedBy, invalid }) => (
             <input
               id={id}

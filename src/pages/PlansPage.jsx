@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import CityTabs from '../components/filters/CityTabs.jsx'
 import FilterChips from '../components/filters/FilterChips.jsx'
 import FilterPanel from '../components/filters/FilterPanel.jsx'
@@ -15,11 +15,15 @@ import { useFilters } from '../hooks/useFilters.js'
 import { useIdentity } from '../hooks/useIdentity.jsx'
 import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery.js'
 import { useOverlay } from '../hooks/useOverlay.js'
+import { usePlanLocations } from '../hooks/usePlanLocations.js'
 import { formatDuration, formatEur, formatYen, summarizePlans } from '../lib/format.js'
 import { EMPTY_FILTERS, filterPlans, sortPlans } from '../lib/search.js'
 import { positionForMove } from '../lib/ordering.js'
 import { usePlans } from '../state/PlansProvider.jsx'
 import styles from './PlansPage.module.css'
+
+// Leaflet (~45 KB) solo se descarga al abrir el mapa
+const PlanMap = lazy(() => import('../components/map/PlanMap.jsx'))
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
 
@@ -34,6 +38,42 @@ function describeSummary({ count, minutes, jpy, unpriced, untimed }, rate) {
   if (count && unpriced) detail.push(`${plural(unpriced, 'plan', 'planes')} sin precio`)
   if (count && untimed) detail.push(`${plural(untimed, 'plan', 'planes')} sin duración`)
   return { text: parts.join(' · '), detail: detail.join(' · ') || undefined }
+}
+
+/** Avisos bajo el mapa: qué planes faltan y por qué. */
+function MapNotes({ pending, unresolved, withoutLink, offline, onOpen }) {
+  if (!pending && !unresolved.length && !withoutLink.length) return null
+  return (
+    <div className={styles.mapNotes}>
+      {pending > 0 && (
+        <p>
+          {offline
+            ? `Sin conexión: ${plural(pending, 'plan se situará', 'planes se situarán')} cuando vuelva.`
+            : `Buscando la ubicación de ${plural(pending, 'plan', 'planes')}…`}
+        </p>
+      )}
+      {unresolved.length > 0 && (
+        <p>
+          No se pudo situar el enlace de{' '}
+          {unresolved.map((plan, i) => (
+            <span key={plan.id}>
+              {i > 0 && ', '}
+              <button type="button" className={styles.noteLink} onClick={() => onOpen(plan.id)}>
+                {plan.title}
+              </button>
+            </span>
+          ))}
+          .
+        </p>
+      )}
+      {withoutLink.length > 0 && (
+        <p>
+          {withoutLink.length === 1 ? '1 plan no sale' : `${withoutLink.length} planes no salen`} en el mapa porque no{' '}
+          {withoutLink.length === 1 ? 'tiene' : 'tienen'} enlace de Google Maps en la dirección.
+        </p>
+      )}
+    </div>
+  )
 }
 
 /** Escribiendo en un campo, los atajos de una letra no deben saltar. */
@@ -59,7 +99,7 @@ export default function PlansPage() {
   } = usePlans()
   const { me } = useIdentity()
   const toast = useToast()
-  const { filters, setFilters, clearFilters, sort, setSort, activeCount } = useFilters()
+  const { filters, setFilters, clearFilters, sort, setSort, view, setView, activeCount } = useFilters()
   const overlay = useOverlay()
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -88,6 +128,8 @@ export default function PlansPage() {
   }, [withoutCity])
 
   const summary = useMemo(() => describeSummary(summarizePlans(visible, rate), rate), [visible, rate])
+  const isMap = view === 'mapa'
+  const locations = usePlanLocations(visible, { enabled: isMap, offline })
 
   const zones = useMemo(
     () => [...new Set(plans.map((p) => p.zone).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')),
@@ -207,16 +249,16 @@ export default function PlansPage() {
     [listSort, offline, plans, visible, move],
   )
 
-  // Atajos de escritorio: "/" busca, "n" crea un plan y Esc cierra el panel
+  // Atajos de escritorio: "/" busca, "n" crea un plan, "m" cambia entre lista y mapa y Esc cierra el panel
   const shortcuts = useRef(null)
-  shortcuts.current = { panelOpen: Boolean(openId || overlay.isNew), offline, overlay }
+  shortcuts.current = { panelOpen: Boolean(openId || overlay.isNew), offline, overlay, isMap, setView }
   useEffect(() => {
     if (!isDesktop) return
     const onKeyDown = (event) => {
       if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return
       // Un diálogo abierto (confirmar, etc.) gestiona sus propias teclas
       if (document.querySelector('dialog[open]')) return
-      const { panelOpen, offline, overlay } = shortcuts.current
+      const { panelOpen, offline, overlay, isMap, setView } = shortcuts.current
       if (event.key === 'Escape') {
         // Primero se sale del campo; un segundo Esc cierra el panel
         if (isTyping(event.target)) event.target.blur()
@@ -230,6 +272,9 @@ export default function PlansPage() {
       } else if ((event.key === 'n' || event.key === 'N') && !offline) {
         event.preventDefault()
         overlay.openNew()
+      } else if (event.key === 'm' || event.key === 'M') {
+        event.preventDefault()
+        setView(isMap ? 'lista' : 'mapa')
       }
     }
     document.addEventListener('keydown', onKeyDown)
@@ -274,6 +319,16 @@ export default function PlansPage() {
                 {activeCount > 0 && <span className={styles.filterCount}>{activeCount}</span>}
               </button>
             )}
+            <button
+              type="button"
+              className={styles.filterButton}
+              onClick={() => setView(isMap ? 'lista' : 'mapa')}
+              aria-label={isMap ? 'Ver la lista' : 'Ver el mapa'}
+              title={isDesktop ? (isMap ? 'Ver la lista (M)' : 'Ver el mapa (M)') : undefined}
+              aria-keyshortcuts={isDesktop ? 'm' : undefined}
+            >
+              <Icon name={isMap ? 'list' : 'map'} />
+            </button>
           </div>
           <CityTabs value={filters.city} counts={cityCounts} onChange={(city) => setFilters({ city })} />
         </div>
@@ -288,22 +343,33 @@ export default function PlansPage() {
               <p className={styles.count} aria-live="polite" title={status === 'ready' ? summary.detail : undefined}>
                 {status === 'ready' && summary.text}
               </p>
-              <SortMenu value={sort} onChange={setSort} />
+              {!isMap && <SortMenu value={sort} onChange={setSort} />}
             </div>
             {activeCount > 0 && (
               <div className={styles.activeFilters}>
                 <FilterChips filters={filters} onChange={setFilters} onClear={clearFilters} />
               </div>
             )}
-            <PlanList
-              plans={ordered}
-              visibleIds={visibleIds}
-              loading={status === 'loading'}
-              selectedId={isDesktop ? openId : null}
-              empty={emptyList}
-              cardProps={cardProps}
-              onMove={onMove}
-            />
+            {isMap ? (
+              <>
+                <div className={styles.mapView}>
+                  <Suspense fallback={<div className={styles.mapLoading} aria-busy="true" aria-label="Cargando el mapa" />}>
+                    <PlanMap points={locations.points} selectedId={openId} onOpen={overlay.openPlan} />
+                  </Suspense>
+                </div>
+                <MapNotes {...locations} offline={offline} onOpen={overlay.openPlan} />
+              </>
+            ) : (
+              <PlanList
+                plans={ordered}
+                visibleIds={visibleIds}
+                loading={status === 'loading'}
+                selectedId={isDesktop ? openId : null}
+                empty={emptyList}
+                cardProps={cardProps}
+                onMove={onMove}
+              />
+            )}
           </>
         )}
       </section>
@@ -324,7 +390,9 @@ export default function PlansPage() {
             </>
           ) : (
             <EmptyState kanji="選" title="Elige un plan">
-              Toca una tarjeta para ver los detalles o crea uno nuevo.
+              {isMap
+                ? 'Toca una chincheta del mapa para ver los detalles.'
+                : 'Toca una tarjeta para ver los detalles o crea uno nuevo.'}
             </EmptyState>
           )}
         </aside>

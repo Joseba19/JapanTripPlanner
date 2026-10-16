@@ -38,6 +38,11 @@ export function writeFilters(params, filters) {
   return params
 }
 
+/** Lista (por defecto) o mapa: ?vista=mapa */
+export function parseView(params) {
+  return params.get('vista') === 'mapa' ? 'mapa' : 'lista'
+}
+
 export function parseSort(params) {
   const sort = params.get('sort')
   return SORT_IDS.includes(sort) ? sort : 'manual'
